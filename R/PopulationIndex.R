@@ -2,13 +2,13 @@
 #'
 #' This function loads a according to the evalSite value.
 # It return the diversity metrics for each year * site in a data.frame
-#' @param evalSite string, name of the area (bauges or profound)
+#' @param dataSet data.frame
 #' @param Nvar string, name of the diversity axis (D_cm for size, species for species)
 #' @param Inter int, width of each size class category
 #' @param path string, path of the data stored
 #' @return A data.frame of metrics
 #' @export
-ReturnDivIndex <- function(evalSite, Nvar='D_cm', Inter=10, path='DATA'){
+ReturnDivIndex <- function(dataSet, Nvar='D_cm', Inter=10, path='DATA'){
     if (!file.exists(paste0(path,'/','all_',evalSite,'.csv'))){stop('Need to build dataset first')}
     dataTemp <- read.csv(file=paste0(path,'/','all_',evalSite,'.csv'))
     dataTemp <- ChooseVar(dataTemp, Nvar=Nvar, Inter=Inter)
