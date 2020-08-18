@@ -1,3 +1,7 @@
+#' Build a csv file gathering observation and simulation for a site
+#' @param evalSite str, name of the site
+#' @param listsrc str list, name of the subsites 
+#' @return logical: whether the function could save the output into a csv file
 GatherDataSim <- function(evalSite, listsrc = c('data', 'landclim', '4c', 'salem')){
 # retrieve list of file (simulations and observations)
   fileNames <- Sys.glob(file.path('DATA','Raw',evalSite,'*.csv'))
@@ -22,12 +26,10 @@ GatherDataSim <- function(evalSite, listsrc = c('data', 'landclim', '4c', 'salem
 }
 
 
-#' Calculate stand population metrics'
-#' This function takes a data.frame and return a Plot object. The data.frame
-#' must contain variables: species, D_cm, weight, X, Y 
-#'
+#' Calculate stand population metrics
+#' This function takes a name of the site and compute for each year the basic population metrics 
 #' @param evalSite str, name of the site
-#' @return data.frame with # calculate yearly aggregated index (N, Dg, BA, BAI, etc) at sp level and stand level (species=="allsp")
+#' @return data.frame with calculate yearly aggregated index (N, Dg, BA, BAI, etc) at sp level and stand level (species=="allsp")
 #' @export
 standVarCalc <- function(evalSite){
   alldf <- read.csv(file.path('DATA',paste0('all_', evalSite, '.csv')))
