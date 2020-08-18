@@ -86,14 +86,15 @@ plot.DistanceTab <- function(Tdis){
 DisToBorder <- function(Plot){
   if (!('Plot' %in% class(Plot))){stop('Need a Plot class arg')}
   if (Plot$shape=='circular'){
-    DisToCenter <- sqrt(DF$X^2+DF$Y^2)
-    return(mutate(DF, DisToBord=Plot$coord-DisToCenter))
+    DisToCenter <- sqrt(Plot$DF$X^2+Plot$DF$Y^2)
+    Plot$DF <- mutate(Plot$DF, DisToBord=Plot$coord-DisTocenter)
   }else if (Plot$shape=='quadrat'){
-    DisToBord <- abs(cbind(DF$X - Plot$coord[1], DF$X - Plot$coord[2],
-	      DF$Y - Plot$coord[3], DF$Y - Plot$coord[4]))
+    DisToBord <- abs(cbind(Plot$DF$X - Plot$coord[1], Plot$DF$X - Plot$coord[2],
+	      Plot$DF$Y - Plot$coord[3], Plot$DF$Y - Plot$coord[4]))
     DisT <- apply(DisToBord, 1, min)
-    return(mutate(DF, DisToBord=DisT))
+    Plot$DF <- mutate(Plot$DF, DisToBord=DisT)
   }
+  return(Plot)
 }
 
 #' Compute Species mingling in a plot
