@@ -1,7 +1,7 @@
 BuildDummy <- function(){
     Inter <- 10
     o <- read.csv('DATA/all_profound.csv')
-    o <- filter(o, src=='4c',year==1967)#[1:50,]
+    o <- filter(o, src=='4c',year==1967)
     DF <- mutate(o, X=runif(dim(o)[1],-10,10), Y=runif(dim(o)[1],-10, 10), ClassSize=(1+floor((D_cm-Inter/2)/Inter))*Inter)
     return(DF)
 }
@@ -85,16 +85,17 @@ plot.DistanceTab <- function(Tdis){
 #' @return A Plot object with DisToBorder variable in the DF
 DisToBorder <- function(Plot){
   if (!('Plot' %in% class(Plot))){stop('Need a Plot class arg')}
+  DF <- Plot$DF
   if (Plot$shape=='circular'){
-    DisToCenter <- sqrt(Plot$DF$X^2+Plot$DF$Y^2)
-    Plot$DF <- mutate(Plot$DF, DisToBord=Plot$coord-DisTocenter)
+    DisToCenter <- sqrt(DF$X^2+DF$Y^2)
+    DF <- mutate(DF, DisToBord=Plot$coord-DisTocenter)
   }else if (Plot$shape=='quadrat'){
-    DisToBord <- abs(cbind(Plot$DF$X - Plot$coord[1], Plot$DF$X - Plot$coord[2],
-	      Plot$DF$Y - Plot$coord[3], Plot$DF$Y - Plot$coord[4]))
+    DisToBord <- abs(cbind(DF$X - Plot$coord[1], DF$X - Plot$coord[2],
+	      DF$Y - Plot$coord[3], DF$Y - Plot$coord[4]))
     DisT <- apply(DisToBord, 1, min)
-    Plot$DF <- mutate(Plot$DF, DisToBord=DisT)
+    DF <- mutate(DF, DisToBord=DisT)
   }
-  return(Plot)
+  return(list(DF=DF, shape=Plot$shape, coord=Plot$coord))
 }
 
 #' Compute Species mingling in a plot
