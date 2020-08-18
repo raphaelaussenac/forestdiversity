@@ -8,27 +8,19 @@
 #' @param path string, path of the data stored
 #' @return A data.frame of metrics
 #' @export
-ReturnDivIndex <- function(dataSet, Nvar='D_cm', Inter=10, path='DATA'){
+ReturnDivIndex <- function(evalSite, Inter=10, path='DATA'){
     if (!file.exists(paste0(path,'/','all_',evalSite,'.csv'))){stop('Need to build dataset first')}
     dataTemp <- read.csv(file=paste0(path,'/','all_',evalSite,'.csv'))
-    dataTemp <- ChooseVar(dataTemp, Nvar=Nvar, Inter=Inter)
-    DivIndex <- CalcDivIndex(dataTemp)
+    DivIndexSize <- CalcDivIndex(dataTemp, Nvar="D_cm", Inter=Inter) %>%
+	    mutate(ShSize=Sh, GSSize=GS, SimpSize=Simp, GiSize=GI, NClassSize=NClass) %>%
+	    dplyr::select(-Sh, -GS, -Simp, -GI, -NClass)
+    DivIndexSp <- CalcDivIndex(dataTemp, Nvar="species", Inter=Inter) %>%
+	    mutate(ShSp=Sh, GSSp=GS, SimpSp=Simp, NSp=NClass) %>%
+	    dplyr::select(-Sh, -GS, -Simp, -GI, -NClass)
+    DivIndex <- left_join(DivIndexSize, DivIndexSp, by=c('year','site','src'))
     return(as.data.frame(DivIndex))
 }
 
-ChooseVar <- function(dataSet, Nvar = "D_cm", Inter = 10){
-# dataset is model output, each line is tree.year data, Nvar the variable used
-# Choose variable to analyse, if not species Inter defines the different classes
-    dataSet <- mutate(dataSet, Var=dataSet[[Nvar]])
-    if (Nvar %in% c('D_cm','H_m','V_m3')){
-	    dataSet <- mutate(dataSet, Class = (1+floor((Var-Inter/2)/Inter))*Inter)
-    }else if (Nvar=='species'){
-	    dataSet <- mutate(dataSet, Class=as.character(Var))
-    }else{
-	    stop('Nvar specified not in output')
-    }
-    return(dataSet)
-}
 
 #' Compute diversity metrics
 #'
@@ -37,9 +29,16 @@ ChooseVar <- function(dataSet, Nvar = "D_cm", Inter = 10){
 #' @param Type string, define wether to compute proportion in terms of frequencies or relative basal area
 #' @return A data.frame containing diversity metrics for each site/year/source
 #' @export
-CalcDivIndex <- function(dataSet, type='BA'){
-# dataSet after ChooseVar, return GS : Gini-Simpson, Sh : Shannon, N : Nb for each year
-# type defines whether we use directly frequency or relative BA to compute metrics
+CalcDivIndex <- function(dataSet, Nvar = 'D_cm', Inter = 10, type = 'BA'){
+    dataSet <- mutate(dataSet, Var=dataSet[[Nvar]])
+    if (Nvar %in% c('D_cm','H_m','V_m3')){
+	    dataSet <- mutate(dataSet, Class = (1+floor((Var-Inter/2)/Inter))*Inter)
+    }else if (Nvar=='species'){
+	    dataSet <- mutate(dataSet, Class=as.character(Var))
+    }else{
+	    stop('Nvar specified not in output')
+    }
+
     if (is.null(dataSet[["Var"]])){stop('Need to choose variable first')}
     dataSet <- mutate(dataSet, BA=pi*(D_cm/200)^2*weight)
     PClass <- group_by(dataSet, year, site, src) %>% mutate(N = sum(weight), BAt=sum(BA)) %>%
