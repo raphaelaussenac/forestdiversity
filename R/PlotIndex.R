@@ -6,6 +6,17 @@ BuildDummy <- function(){
     return(DF)
 }
 
+BuildDummy2 <- function(){
+    Inter <- 10
+    o <- read.csv('DATA/all_profound.csv')
+    o <- filter(o, src=='4c',year==1967)
+    NN <- floor(sqrt(dim(o)[1]))
+    o <- o[1:(NN^2),]
+    XY <- expand.grid(seq(-10,10,length.out=NN), seq(-10,10,length.out=NN))
+    DF <- mutate(o, X=XY[,1], Y=XY[,2], ClassSize=(1+floor((D_cm-Inter/2)/Inter))*Inter)
+    return(DF)
+}
+
 #' Create a Plot object
 #'
 #' This function takes a data.frame and return a Plot object. The data.frame
@@ -52,7 +63,8 @@ TabDist <- function(Plot, Nselec = 10){
     V <- rbind(V, data.table(V1=V$V2, V2=V$V1, Dis=V$Dis))
     Tdis <- setorder(V, V1, Dis)
     if (N >= Nselec){Tdis <- Tdis[rep(0:(Nselec-1), N)+rep(seq(1,N*(N-1),by=(N-1)),each=Nselec)]}
-    Tdis <- mutate(Tdis, sp1=DF$species[Tdis$V1], X1=DF$X[Tdis$V1], Y1=DF$Y[Tdis$V1],sp2=DF$species[Tdis$V2],
+    Tdis <- mutate(Tdis, sp1=DF$species[Tdis$V1], X1=DF$X[Tdis$V1], Y1=DF$Y[Tdis$V1],
+        X2=DF$X[Tdis$V2], Y2=DF$Y[Tdis$V2], sp2=DF$species[Tdis$V2],
         DBH1=DF$D_cm[Tdis$V1], DBH2=DF$D_cm[Tdis$V2], ClassSize1=DF$ClassSize[Tdis$V2],
        	ClassSize2=DF$ClassSize[Tdis$V2], DisToBord=DF$DisToBord[Tdis$V1])
     Tdis <- list(DF=Tdis, shape=Plot$shape, coord=Plot$coord)
@@ -60,8 +72,7 @@ TabDist <- function(Plot, Nselec = 10){
     return(Tdis)
 }
 
-plot.DistanceTab <- function(Tdis){
-	Nk <- 3
+plot.DistanceTab <- function(Tdis, Nk=4){
   Plot <- group_by(Tdis$DF, V1) %>%
 	  summarise(species=sp1[1], DBH1=DBH1[1], ClassSize=ClassSize1[1],
 	  X=X1[1], Y=Y1[1], AllIn=(Dis[Nk]<=DisToBord[Nk])) %>% ungroup()
@@ -106,7 +117,7 @@ DisToBorder <- function(Plot){
 #' @param EdgeCorrection str, type of edge correction applied
 #' @return data.frame with mingling metrics
 #' @export
-Compute_mingling <- function(TabDis, Nk=3, EdgeCorrection="NN1"){
+Compute_mingling <- function(TabDis, Nk=4, EdgeCorrection="NN1"){
 	if (Nk<=0|Nk>10){stop('Number of k neighbours Nk must lie between 1 and 10')}
     TabDis <- mutate(TabDis, I1=sp1!=sp2)
     if (TabDis$shape=='circular'){
@@ -144,7 +155,7 @@ Compute_mingling <- function(TabDis, Nk=3, EdgeCorrection="NN1"){
 #' @param EdgeCorrection str, type of edge correction applied
 #' @return data.frame with size differentiation indexes
 #' @export
-Compute_Size_Diff <- function(TabDis, Nk=1, EdgeCorrection='None'){
+Compute_Size_Diff <- function(TabDis, Nk=4, EdgeCorrection='None'){
 	if (Nk<=0|Nk>10){stop('Number of k neighbours Nk must lie between 1 and 10')}
       N <- length(unique(TabDis$V1))
       TabDis <- mutate(TabDis, I=rep(1:10, N)) %>% filter(I<=Nk)
@@ -174,6 +185,43 @@ Compute_Size_Diff <- function(TabDis, Nk=1, EdgeCorrection='None'){
     ET <- 1 - 2/(N*(N-1)) * sum(TT$R/TT$DBH)
     return(cbind(T, ET=ET))
 } 
+
+#' Compute Uniform angle Index
+#'
+#' This function takes a TabDis object and return a mean Winkelmass value
+#' @param TabDis object
+#' @param Nk int, number of neighboors
+#' @param EdgeCorrection str, type of edge correction applied
+#' @return numeric mean Winkelmass value for the plot
+#' @export
+Compute_Winkelmass <- function(TabDis, Nk=4){
+	if (Nk<=0|Nk>10){stop('Number of k neighbours Nk must lie between 1 and 10')}
+   DF <- group_by(TabDis$DF, V1) %>% mutate(N=1:10, AllIn=(Dis[Nk]<=DisToBord)) %>% ungroup() %>% filter(N<=Nk)
+   iN <- combn(Nk,2);iN <- cbind(iN,rbind(iN[2,], iN[1,]))
+
+   listAngles <- function(X1, Y1, X2, Y2, iN, Nk, V1, AllIn){
+	   X2 <- X2 + runif(length(X2),-1e-4,1e-4)
+	   Y2 <- Y2 + runif(length(X2),-1e-4,1e-4)
+	   if (AllIn[1]==FALSE){return(NA)}
+           D1 <- cbind(X2[iN[1,]], Y2[iN[1,]]) - cbind(X1[iN[1,]], Y1[iN[1,]])
+           D2 <- cbind(X2[iN[2,]], Y2[iN[2,]]) - cbind(X1[iN[2,]], Y1[iN[2,]])
+	   Ags <- (atan2(D2[,2], D2[,1]) - atan2(D1[,2], D1[,1])) * 180 / pi
+	   Ags[Ags<0] <- 360 + Ags[Ags<0]
+	   T <- as.data.frame(t(iN)) %>% mutate(Ang=Ags)
+	   p1 <- filter(T, V1==1) %>% filter(Ang==min(abs(Ang)))
+	   p2 <- filter(T, V1==p1$V2) %>%  filter(Ang==min(Ang))
+	   p3 <- filter(T, V1==p2$V2) %>%  filter(Ang==min(Ang))
+	   p4 <- filter(T, V1==p3$V2, V2==1)
+	   listAng <- c(p1$Ang, p2$Ang, p3$Ang, p4$Ang)
+	   if (round(sum(listAng))!=360){stop(paste0('Trouble with angle
+	     calculation with tree Nb ', V1[1]))}
+	   listAng <- round(listAng, digits=1)
+	   listAng[listAng>180] <- 360 -  listAng[listAng>180]
+	   return(sum(listAng<=(360 / Nk)))
+   }
+	 return(group_by(DF, V1) %>% summarise(Wink=listAngles(X1, Y1, X2, Y2,
+	   iN=iN, Nk=Nk, V1, AllIn)/Nk, AllIn=AllIn[1]) %>% ungroup())
+}
 
 ############ Structural complexity
 
