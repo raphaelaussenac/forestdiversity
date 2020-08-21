@@ -136,10 +136,14 @@ Compute_mingling <- function(TabDis, Nk=4, EdgeCorrection="NN1"){
              Mk <- group_by(Mg,k) %>% summarise(mk=sum(AllIn)/Ni)  %>%
 	        ungroup() %>% mutate(M=sum(Mg$Mi*Mg$AllIn)/sum(Mg$AllIn))
         },
+	Exclude={Mg <- filter(Mg, AllIn==TRUE) 
+              Mk <- group_by(Mg, k) %>% summarise(mk=n()/dim(Mg)[1]) %>%
+	      	ungroup() %>% mutate(M=sum(Mg$Mi) / dim(Mg)[1])
+	},
 	None={Mk <- group_by(Mg, k) %>% summarise(mk=n()/dim(Mg)[1]) %>%
 	      	ungroup() %>% mutate(M=sum(Mg$Mi) / dim(Mg)[1])
 	},
-        stop("Need a valid edge correction (NN1, NN2, None)")
+        stop("Need a valid edge correction (NN1, NN2, Exclude, None)")
     )
     TT <- group_by(TabDis, V1) %>% summarise(species=sp1[1],ClassSize=ClassSize1[1]) %>% ungroup()
     Ni <- group_by(TT, species) %>% summarise(N=n()) %>% ungroup() %>% mutate(Nt=dim(TT)[1])
@@ -176,9 +180,12 @@ Compute_Size_Diff <- function(TabDis, Nk=4, EdgeCorrection='None'){
         },
         NN2={T <- sum(SiDi$Ti*SiDi$AllIn) / sum(SiDi$AllIn)
         },
+	Exclude={SiDi <- filter(AllIn==TRUE)
+	  T <- mean(SiDi$Ti)
+	},
 	None={T <- mean(SiDi$Ti)
 	},
-        stop("Need a valid edge correction (NN1, NN2, None)")
+        stop("Need a valid edge correction (NN1, NN2, Exclude, None)")
     )
     TT <- group_by(TabDis, V1) %>% summarise(DBH=DBH1[1]) %>% ungroup() %>% arrange(DBH)
     TT <- cbind(TT,R=c(0, cumsum(TT$DBH)[1:(N-1)]))
