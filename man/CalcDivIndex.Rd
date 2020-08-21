@@ -4,7 +4,7 @@
 \alias{CalcDivIndex}
 \title{Compute diversity metrics}
 \usage{
-CalcDivIndex(dataSet, type = "BA")
+CalcDivIndex(dataSet, Nvar = "D_cm", Inter = 10, type = "BA")
 }
 \arguments{
 \item{Data.frame}{of population, can gather multiple sites, years and sources}
