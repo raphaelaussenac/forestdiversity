@@ -4,16 +4,16 @@
 \alias{ReturnDivIndex}
 \title{Return Diversity metrics}
 \usage{
-ReturnDivIndex(evalSite, Nvar = "D_cm", Inter = 10, path = "DATA")
+ReturnDivIndex(evalSite, Inter = 10, path = "DATA")
 }
 \arguments{
-\item{evalSite}{string, name of the area (bauges or profound)}
-
-\item{Nvar}{string, name of the diversity axis (D_cm for size, species for species)}
-
 \item{Inter}{int, width of each size class category}
 
 \item{path}{string, path of the data stored}
+
+\item{dataSet}{data.frame}
+
+\item{Nvar}{string, name of the diversity axis (D_cm for size, species for species)}
 }
 \value{
 A data.frame of metrics
