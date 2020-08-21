@@ -200,7 +200,7 @@ Compute_Winkelmass <- function(TabDis, Nk=4){
    iN <- combn(Nk,2);iN <- cbind(iN,rbind(iN[2,], iN[1,]))
 
    listAngles <- function(X1, Y1, X2, Y2, iN, Nk, V1, AllIn){
-	   X2 <- X2 + runif(length(X2),-1e-4,1e-4)
+	   X2 <- X2 + runif(length(X2),-1e-4,1e-4) # Add noise to handle perfectly aligned trees
 	   Y2 <- Y2 + runif(length(X2),-1e-4,1e-4)
 	   if (AllIn[1]==FALSE){return(NA)}
            D1 <- cbind(X2[iN[1,]], Y2[iN[1,]]) - cbind(X1[iN[1,]], Y1[iN[1,]])
@@ -208,7 +208,7 @@ Compute_Winkelmass <- function(TabDis, Nk=4){
 	   Ags <- (atan2(D2[,2], D2[,1]) - atan2(D1[,2], D1[,1])) * 180 / pi
 	   Ags[Ags<0] <- 360 + Ags[Ags<0]
 	   T <- as.data.frame(t(iN)) %>% mutate(Ang=Ags)
-	   p1 <- filter(T, V1==1) %>% filter(Ang==min(abs(Ang)))
+	   p1 <- filter(T, V1==1) %>% filter(Ang==min(Ang))
 	   p2 <- filter(T, V1==p1$V2) %>%  filter(Ang==min(Ang))
 	   p3 <- filter(T, V1==p2$V2) %>%  filter(Ang==min(Ang))
 	   p4 <- filter(T, V1==p3$V2, V2==1)
