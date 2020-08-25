@@ -1,4 +1,4 @@
-## Packages to compute forest diversity index in IMaestro project
+## Package to compute forest diversity index in IMaestro project
 
 Outputs of model/data must be matrix with a line for each year/species/DBH.
 Variables recorded must at least year, species, DBH and a weight.
