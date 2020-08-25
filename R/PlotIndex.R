@@ -206,7 +206,7 @@ Compute_Winkelmass <- function(TabDis, Nk=4){
    DF <- group_by(TabDis$DF, V1) %>% mutate(N=1:10, AllIn=(Dis[Nk]<=DisToBord)) %>% ungroup() %>% filter(N<=Nk)
    iN <- combn(Nk,2);iN <- cbind(iN,rbind(iN[2,], iN[1,]))
 
-   listAngles <- function(X1, Y1, X2, Y2, iN, Nk, V1, AllIn){
+   listAnglesOld <- function(X1, Y1, X2, Y2, iN, Nk, V1, AllIn){
 	   X2 <- X2 + runif(length(X2),-1e-4,1e-4) # Add noise to handle perfectly aligned trees
 	   Y2 <- Y2 + runif(length(X2),-1e-4,1e-4)
 	   if (AllIn[1]==FALSE){return(NA)}
@@ -226,8 +226,30 @@ Compute_Winkelmass <- function(TabDis, Nk=4){
 	   listAng[listAng>180] <- 360 -  listAng[listAng>180]
 	   return(sum(listAng<=(360 / Nk)))
    }
+	   Tab <- 1 + permutations(3,3)
+	   Tab <- cbind(10+Tab[,1],Tab[,1]*10+Tab[,2],Tab[,2]*10+Tab[,3],Tab[,3]*10+1)
+
+  listAngles <- function(X1, Y1, X2, Y2, iN, Nk, V1, AllIn, Tab){
+	   if (AllIn[1]==FALSE){return(NA)}
+	   X2 <- X2 + runif(length(X2),-1e-4,1e-4) # Add noise to handle perfectly aligned trees
+	   Y2 <- Y2 + runif(length(X2),-1e-4,1e-4)
+           D1 <- cbind(X2[iN[1,]], Y2[iN[1,]]) - cbind(X1[iN[1,]], Y1[iN[1,]])
+           D2 <- cbind(X2[iN[2,]], Y2[iN[2,]]) - cbind(X1[iN[2,]], Y1[iN[2,]])
+	   Ags <- (atan2(D2[,2], D2[,1]) - atan2(D1[,2], D1[,1])) * 180 / pi
+	   Ags[Ags<0] <- 360 + Ags[Ags<0]
+	   T <- as.data.frame(t(iN)) %>% mutate(Ang=Ags, I=10*V1 + V2)
+	   Tabnew <- Tab
+           Tabnew[] <- T$Ang[match(unlist(Tab), T$I)]
+	   In <- which(round(apply(Tabnew,1, sum))==360)
+	   if (length(In)!=1){stop(paste0('Trouble with angle
+             calculation with tree Nb ', V1[1]))}
+	   listAng <- Tabnew[In,]
+	   listAng <- round(listAng, digits=1)
+	   listAng[listAng>180] <- 360 -  listAng[listAng>180]
+	   return(sum(listAng<=(360 / Nk)))
+   }
 	 return(group_by(DF, V1) %>% summarise(Wink=listAngles(X1, Y1, X2, Y2,
-	   iN=iN, Nk=Nk, V1, AllIn)/Nk, AllIn=AllIn[1]) %>% ungroup())
+	   iN=iN, Nk=Nk, V1, AllIn, Tab=Tab)/Nk, AllIn=AllIn[1]) %>% ungroup())
 }
 
 ############ Structural complexity
