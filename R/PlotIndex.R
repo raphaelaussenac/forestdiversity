@@ -5,15 +5,15 @@
 BuildDummy <- function(){
     Inter <- 10
     o <- read.csv('DATA/all_profound.csv')
-    o <- filter(o, src=='4c',year==1967)
-    DF <- mutate(o, X=runif(dim(o)[1],-10,10), Y=runif(dim(o)[1],-10, 10), ClassSize=(1+floor((D_cm-Inter/2)/Inter))*Inter)
+    o <- dplyr::filter(o, src=='4c',year==1967)
+    DF <- dplyr::mutate(o, X=runif(dim(o)[1],-10,10), Y=runif(dim(o)[1],-10, 10), ClassSize=(1+floor((D_cm-Inter/2)/Inter))*Inter)
     return(DF)
 }
 
 BuildDummy2 <- function(){
     Inter <- 10
     o <- read.csv('DATA/all_profound.csv')
-    o <- filter(o, src=='4c',year==1967)
+    o <- dplyr::filter(o, src=='4c',year==1967)
     NN <- floor(sqrt(dim(o)[1]))
     o <- o[1:(NN^2),]
     XY <- expand.grid(seq(-10,10,length.out=NN), seq(-10,10,length.out=NN))
@@ -55,19 +55,20 @@ createPlot <- function(DF, shape="quadrat", coord){
 #' @return A TabDis object
 #' @export
 TabDist <- function(Plot, Nselec = 10){
+	require(data.table)
     if (!('Plot' %in% class(Plot))){stop('Need a Plot class arg')}
     Plot <- DisToBorder(Plot)
     DF <- Plot$DF
     N <- dim(DF)[1]
     coo <- cbind(DF$X, DF$Y)
-    V <- as.data.table(t(combn(seq(1,dim(coo)[1]),2))) 
+    V <- data.table::as.data.table(t(combn(seq(1,dim(coo)[1]),2))) 
     calcd <- function(i1, i2, coo){return(sqrt(apply((coo[i1,]-coo[i2,])^2,1,sum)))}
 
     V <- cbind(V, Dis=calcd(V$V1,V$V2, coo=coo))
-    V <- rbind(V, data.table(V1=V$V2, V2=V$V1, Dis=V$Dis))
+    V <- rbind(V, data.table::data.table(V1=V$V2, V2=V$V1, Dis=V$Dis))
     Tdis <- setorder(V, V1, Dis)
     if (N >= Nselec){Tdis <- Tdis[rep(0:(Nselec-1), N)+rep(seq(1,N*(N-1),by=(N-1)),each=Nselec)]}
-    Tdis <- mutate(Tdis, sp1=DF$species[Tdis$V1], X1=DF$X[Tdis$V1], Y1=DF$Y[Tdis$V1],
+    Tdis <- dplyr::mutate(Tdis, sp1=DF$species[Tdis$V1], X1=DF$X[Tdis$V1], Y1=DF$Y[Tdis$V1],
         X2=DF$X[Tdis$V2], Y2=DF$Y[Tdis$V2], sp2=DF$species[Tdis$V2],
         DBH1=DF$D_cm[Tdis$V1], DBH2=DF$D_cm[Tdis$V2], ClassSize1=DF$ClassSize[Tdis$V2],
        	ClassSize2=DF$ClassSize[Tdis$V2], DisToBord=DF$DisToBord[Tdis$V1])
@@ -77,18 +78,18 @@ TabDist <- function(Plot, Nselec = 10){
 }
 
 plot.DistanceTab <- function(Tdis, Nk=4){
-  Plot <- group_by(Tdis$DF, V1) %>%
-	  summarise(species=sp1[1], DBH1=DBH1[1], ClassSize=ClassSize1[1],
-	  X=X1[1], Y=Y1[1], AllIn=(Dis[Nk]<=DisToBord[Nk])) %>% ungroup()
+  Plot <- dplyr::group_by(Tdis$DF, V1) %>%
+	  dplyr::summarise(species=sp1[1], DBH1=DBH1[1], ClassSize=ClassSize1[1],
+	  X=X1[1], Y=Y1[1], AllIn=(Dis[Nk]<=DisToBord[Nk])) %>% dplyr::ungroup()
   if (Tdis$shape=='quadrat'){
-    pl <- ggplot() + theme(text=element_text(size=20)) + 
-          geom_point(data=filter(Plot, AllIn==TRUE), aes(x=X, y=Y, fill=species, size= DBH1),pch=21) + 
-	  geom_point(data=filter(Plot, AllIn==FALSE), aes(x=X, y=Y, col=species, size= DBH1), pch=1) +
-          geom_rect(aes(xmin=Tdis$coord[1], xmax=Tdis$coord[2], ymin=Tdis$coord[3], ymax=Tdis$coord[4]), fill=NA,col='black')
+    pl <- ggplot2::ggplot() + theme(text=element_text(size=20)) + 
+          ggplot2::geom_point(data=dplyr::filter(Plot, AllIn==TRUE), aes(x=X, y=Y, fill=species, size= DBH1),pch=21) + 
+	  ggplot2::geom_point(data=dplyr::filter(Plot, AllIn==FALSE), aes(x=X, y=Y, col=species, size= DBH1), pch=1) +
+          ggplot2::geom_rect(aes(xmin=Tdis$coord[1], xmax=Tdis$coord[2], ymin=Tdis$coord[3], ymax=Tdis$coord[4]), fill=NA,col='black')
   }else if (Tdis$shape=='circular'){
-    pl <- ggplot() + theme(text=element_text(size=20)) + 
-          geom_point(data=filter(Plot, AllIn==TRUE), aes(x=X, y=Y, fill=species, size= DBH1),pch=21) + 
-	  geom_point(data=filter(Plot, AllIn==FALSE), aes(x=X, y=Y, col=species, size= DBH1), pch=1)
+    pl <- ggplot2::ggplot() + theme(text=element_text(size=20)) + 
+          ggplot2::geom_point(data=dplyr::filter(Plot, AllIn==TRUE), aes(x=X, y=Y, fill=species, size= DBH1),pch=21) + 
+	  ggplot2::geom_point(data=dplyr::filter(Plot, AllIn==FALSE), aes(x=X, y=Y, col=species, size= DBH1), pch=1)
   }
   print(pl)
 }
@@ -103,12 +104,12 @@ DisToBorder <- function(Plot){
   DF <- Plot$DF
   if (Plot$shape=='circular'){
     DisToCenter <- sqrt(DF$X^2+DF$Y^2)
-    DF <- mutate(DF, DisToBord=Plot$coord-DisTocenter)
+    DF <- dplyr::mutate(DF, DisToBord=Plot$coord-DisTocenter)
   }else if (Plot$shape=='quadrat'){
     DisToBord <- abs(cbind(DF$X - Plot$coord[1], DF$X - Plot$coord[2],
 	      DF$Y - Plot$coord[3], DF$Y - Plot$coord[4]))
     DisT <- apply(DisToBord, 1, min)
-    DF <- mutate(DF, DisToBord=DisT)
+    DF <- dplyr::mutate(DF, DisToBord=DisT)
   }
   return(list(DF=DF, shape=Plot$shape, coord=Plot$coord))
 }
@@ -123,36 +124,36 @@ DisToBorder <- function(Plot){
 #' @export
 Compute_mingling <- function(TabDis, Nk=4, EdgeCorrection="NN1"){
 	if (Nk<=0|Nk>10){stop('Number of k neighbours Nk must lie between 1 and 10')}
-    TabDis <- mutate(TabDis, I1=sp1!=sp2)
+    TabDis <- dplyr::mutate(TabDis, I1=sp1!=sp2)
     if (TabDis$shape=='circular'){
-        Mg <- group_by(TabDis, V1) %>% summarise(k=sum(I1[1:Nk]), Mi=k/Nk, AllIn=(Dis[Nk]<=DisToBord[Nk])>0,
-           Fi=(TabDis$coord-Dis[Nk])^2*pi) %>% ungroup()
+        Mg <- dplyr::group_by(TabDis, V1) %>% dplyr::summarise(k=sum(I1[1:Nk]), Mi=k/Nk, AllIn=(Dis[Nk]<=DisToBord[Nk])>0,
+           Fi=(TabDis$coord-Dis[Nk])^2*pi) %>% dplyr::ungroup()
     }else if (TabDis$shape=='quadrat'){
-        Mg <- group_by(TabDis, V1) %>% summarise(k=sum(I1[1:Nk]), Mi=k/Nk, AllIn=(Dis[Nk]<=DisToBord[Nk])>0,
-           Fi=(abs(diff(TabDis$coord[c(1,2)]))-Dis[Nk])*(abs(diff(TabDis$coord[c(3,4)]))-Dis[Nk])) %>% ungroup()
+        Mg <- dplyr::group_by(TabDis, V1) %>% dplyr::summarise(k=sum(I1[1:Nk]), Mi=k/Nk, AllIn=(Dis[Nk]<=DisToBord[Nk])>0,
+           Fi=(abs(diff(TabDis$coord[c(1,2)]))-Dis[Nk])*(abs(diff(TabDis$coord[c(3,4)]))-Dis[Nk])) %>% dplyr::ungroup()
     }
     switch(EdgeCorrection,
         NN1={Lhat <- sum(Mg$AllIn/Mg$Fi)
-             Mk <- group_by(Mg, k) %>% summarise(mk=(1/Lhat) * sum(AllIn/Fi)) %>%
-		ungroup() %>% mutate(M=sum(Mg$Mi*Mg$AllIn/Mg$Fi) / Lhat)
+             Mk <- dplyr::group_by(Mg, k) %>% dplyr::summarise(mk=(1/Lhat) * sum(AllIn/Fi)) %>%
+		dplyr::ungroup() %>% dplyr::mutate(M=sum(Mg$Mi*Mg$AllIn/Mg$Fi) / Lhat)
         },
         NN2={Ni <- sum(Mg$AllIn)
-             Mk <- group_by(Mg,k) %>% summarise(mk=sum(AllIn)/Ni)  %>%
-	        ungroup() %>% mutate(M=sum(Mg$Mi*Mg$AllIn)/sum(Mg$AllIn))
+             Mk <- dplyr::group_by(Mg,k) %>% dplyr::summarise(mk=sum(AllIn)/Ni)  %>%
+	        dplyr::ungroup() %>% dplyr::mutate(M=sum(Mg$Mi*Mg$AllIn)/sum(Mg$AllIn))
         },
-	Exclude={Mg <- filter(Mg, AllIn==TRUE) 
-              Mk <- group_by(Mg, k) %>% summarise(mk=n()/dim(Mg)[1]) %>%
-	      	ungroup() %>% mutate(M=sum(Mg$Mi) / dim(Mg)[1])
+	Exclude={Mg <- dplyr::filter(Mg, AllIn==TRUE) 
+              Mk <- dplyr::group_by(Mg, k) %>% dplyr::summarise(mk=n()/dim(Mg)[1]) %>%
+	      	dplyr::ungroup() %>% dplyr::mutate(M=sum(Mg$Mi) / dim(Mg)[1])
 	},
-	None={Mk <- group_by(Mg, k) %>% summarise(mk=n()/dim(Mg)[1]) %>%
-	      	ungroup() %>% mutate(M=sum(Mg$Mi) / dim(Mg)[1])
+	None={Mk <- dplyr::group_by(Mg, k) %>% dplyr::summarise(mk=n()/dim(Mg)[1]) %>%
+	      	dplyr::ungroup() %>% dplyr::mutate(M=sum(Mg$Mi) / dim(Mg)[1])
 	},
         stop("Need a valid edge correction (NN1, NN2, Exclude, None)")
     )
-    TT <- group_by(TabDis, V1) %>% summarise(species=sp1[1],ClassSize=ClassSize1[1]) %>% ungroup()
-    Ni <- group_by(TT, species) %>% summarise(N=n()) %>% ungroup() %>% mutate(Nt=dim(TT)[1])
+    TT <- dplyr::group_by(TabDis, V1) %>% dplyr::summarise(species=sp1[1],ClassSize=ClassSize1[1]) %>% dplyr::ungroup()
+    Ni <- dplyr::group_by(TT, species) %>% dplyr::summarise(N=n()) %>% dplyr::ungroup() %>% dplyr::mutate(Nt=dim(TT)[1])
     Em <-  sum(Ni$N * (Ni$Nt - Ni$N) / (Ni$Nt * (Ni$Nt-1)))
-    return(mutate(Mk,Em=Em))
+    return(dplyr::mutate(Mk,Em=Em))
 }
 
 #' Compute Species mingling in a plot
@@ -166,17 +167,17 @@ Compute_mingling <- function(TabDis, Nk=4, EdgeCorrection="NN1"){
 Compute_Size_Diff <- function(TabDis, Nk=4, EdgeCorrection='None'){
 	if (Nk<=0|Nk>10){stop('Number of k neighbours Nk must lie between 1 and 10')}
       N <- length(unique(TabDis$V1))
-      TabDis <- mutate(TabDis, I=rep(1:10, N)) %>% filter(I<=Nk)
-      TabDis <- mutate(TabDis, DBHmax=apply(cbind(TabDis$DBH1, TabDis$DBH2), 1, max),
+      TabDis <- dplyr::mutate(TabDis, I=rep(1:10, N)) %>% dplyr::filter(I<=Nk)
+      TabDis <- dplyr::mutate(TabDis, DBHmax=apply(cbind(TabDis$DBH1, TabDis$DBH2), 1, max),
 	DBHmin=apply(cbind(TabDis$DBH1, TabDis$DBH2), 1, min))
     if (TabDis$shape=='circular'){
-        SiDi <- group_by(TabDis, V1) %>% summarise(Ti=1-sum(DBHmin/DBHmax) / Nk,
+        SiDi <- dplyr::group_by(TabDis, V1) %>% dplyr::summarise(Ti=1-sum(DBHmin/DBHmax) / Nk,
            AllIn=(Dis[Nk]<=DisToBord[Nk])>0,
-           Fi=(TabDis$coord-Dis[Nk])^2*pi) %>% ungroup()
+           Fi=(TabDis$coord-Dis[Nk])^2*pi) %>% dplyr::ungroup()
     }else if (TabDis$shape=='quadrat'){
-        SiDi <- group_by(TabDis, V1) %>% summarise(Ti=1-sum(DBHmin/DBHmax)/Nk,
+        SiDi <- dplyr::group_by(TabDis, V1) %>% dplyr::summarise(Ti=1-sum(DBHmin/DBHmax)/Nk,
            AllIn=(Dis[Nk]<=DisToBord[Nk])>0,
-           Fi=(abs(diff(TabDis$coord[c(1,2)]))-Dis[Nk])*(abs(diff(TabDis$coord[c(3,4)]))-Dis[Nk])) %>% ungroup()
+           Fi=(abs(diff(TabDis$coord[c(1,2)]))-Dis[Nk])*(abs(diff(TabDis$coord[c(3,4)]))-Dis[Nk])) %>% dplyr::ungroup()
     }
     switch(EdgeCorrection,
         NN1={Lhat <- sum(SiDi$AllIn/SiDi$Fi)
@@ -184,14 +185,14 @@ Compute_Size_Diff <- function(TabDis, Nk=4, EdgeCorrection='None'){
         },
         NN2={T <- sum(SiDi$Ti*SiDi$AllIn) / sum(SiDi$AllIn)
         },
-	Exclude={SiDi <- filter(AllIn==TRUE)
+	Exclude={SiDi <- dplyr::filter(AllIn==TRUE)
 	  T <- mean(SiDi$Ti)
 	},
 	None={T <- mean(SiDi$Ti)
 	},
         stop("Need a valid edge correction (NN1, NN2, Exclude, None)")
     )
-    TT <- group_by(TabDis, V1) %>% summarise(DBH=DBH1[1]) %>% ungroup() %>% arrange(DBH)
+    TT <- dplyr::group_by(TabDis, V1) %>% dplyr::summarise(DBH=DBH1[1]) %>% dplyr::ungroup() %>% arrange(DBH)
     TT <- cbind(TT,R=c(0, cumsum(TT$DBH)[1:(N-1)]))
     ET <- 1 - 2/(N*(N-1)) * sum(TT$R/TT$DBH)
     return(cbind(T, ET=ET))
@@ -207,7 +208,7 @@ Compute_Size_Diff <- function(TabDis, Nk=4, EdgeCorrection='None'){
 #' @export
 Compute_Winkelmass <- function(TabDis, Nk=4){
 	if (Nk<=0|Nk>10){stop('Number of k neighbours Nk must lie between 1 and 10')}
-   DF <- group_by(TabDis$DF, V1) %>% mutate(N=1:10, AllIn=(Dis[Nk]<=DisToBord)) %>% ungroup() %>% filter(N<=Nk)
+   DF <- dplyr::group_by(TabDis$DF, V1) %>% dplyr::mutate(N=1:10, AllIn=(Dis[Nk]<=DisToBord)) %>% dplyr::ungroup() %>% dplyr::filter(N<=Nk)
    iN <- combn(Nk,2);iN <- cbind(iN,rbind(iN[2,], iN[1,]))
 
    listAnglesOld <- function(X1, Y1, X2, Y2, iN, Nk, V1, AllIn){
@@ -218,11 +219,11 @@ Compute_Winkelmass <- function(TabDis, Nk=4){
            D2 <- cbind(X2[iN[2,]], Y2[iN[2,]]) - cbind(X1[iN[2,]], Y1[iN[2,]])
 	   Ags <- (atan2(D2[,2], D2[,1]) - atan2(D1[,2], D1[,1])) * 180 / pi
 	   Ags[Ags<0] <- 360 + Ags[Ags<0]
-	   T <- as.data.frame(t(iN)) %>% mutate(Ang=Ags)
-	   p1 <- filter(T, V1==1) %>% filter(Ang==min(Ang))
-	   p2 <- filter(T, V1==p1$V2) %>%  filter(Ang==min(Ang))
-	   p3 <- filter(T, V1==p2$V2) %>%  filter(Ang==min(Ang))
-	   p4 <- filter(T, V1==p3$V2, V2==1)
+	   T <- as.data.frame(t(iN)) %>% dplyr::mutate(Ang=Ags)
+	   p1 <- dplyr::filter(T, V1==1) %>% dplyr::filter(Ang==min(Ang))
+	   p2 <- dplyr::filter(T, V1==p1$V2) %>%  dplyr::filter(Ang==min(Ang))
+	   p3 <- dplyr::filter(T, V1==p2$V2) %>%  dplyr::filter(Ang==min(Ang))
+	   p4 <- dplyr::filter(T, V1==p3$V2, V2==1)
 	   listAng <- c(p1$Ang, p2$Ang, p3$Ang, p4$Ang)
 	   if (round(sum(listAng))!=360){stop(paste0('Trouble with angle
 	     calculation with tree Nb ', V1[1]))}
@@ -241,7 +242,7 @@ Compute_Winkelmass <- function(TabDis, Nk=4){
            D2 <- cbind(X2[iN[2,]], Y2[iN[2,]]) - cbind(X1[iN[2,]], Y1[iN[2,]])
 	   Ags <- (atan2(D2[,2], D2[,1]) - atan2(D1[,2], D1[,1])) * 180 / pi
 	   Ags[Ags<0] <- 360 + Ags[Ags<0]
-	   T <- as.data.frame(t(iN)) %>% mutate(Ang=Ags, I=10*V1 + V2)
+	   T <- as.data.frame(t(iN)) %>% dplyr::mutate(Ang=Ags, I=10*V1 + V2)
 	   Tabnew <- Tab
            Tabnew[] <- T$Ang[match(unlist(Tab), T$I)]
 	   In <- which(round(apply(Tabnew,1, sum))==360)
@@ -252,8 +253,8 @@ Compute_Winkelmass <- function(TabDis, Nk=4){
 	   listAng[listAng>180] <- 360 -  listAng[listAng>180]
 	   return(sum(listAng<=(360 / Nk)))
    }
-	 return(group_by(DF, V1) %>% summarise(Wink=listAngles(X1, Y1, X2, Y2,
-	   iN=iN, Nk=Nk, V1, AllIn, Tab=Tab)/Nk, AllIn=AllIn[1]) %>% ungroup())
+	 return(dplyr::group_by(DF, V1) %>% dplyr::summarise(Wink=listAngles(X1, Y1, X2, Y2,
+	   iN=iN, Nk=Nk, V1, AllIn, Tab=Tab)/Nk, AllIn=AllIn[1]) %>% dplyr::ungroup())
 }
 
 ############ Structural complexity
