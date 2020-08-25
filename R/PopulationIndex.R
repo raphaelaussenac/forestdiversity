@@ -42,13 +42,13 @@ CalcDivIndex <- function(dataSet, Nvar = 'D_cm', Inter = 10, type = 'BA'){
     if (is.null(dataSet[["Var"]])){stop('Need to choose variable first')}
     dataSet <- dplyr::mutate(dataSet, BA=pi*(D_cm/200)^2*weight)
     PClass <- dplyr::group_by(dataSet, year, site, src) %>% dplyr::mutate(N = sum(weight), BAt=sum(BA)) %>%
-      dplyr::ungroup() %>% dplyr::group_by(year, Class, site, src) %>% dplyr::dplyr::summarise(p=(sum(weight)/N[1]),
+      dplyr::ungroup() %>% dplyr::group_by(year, Class, site, src) %>% dplyr::summarise(p=(sum(weight)/N[1]),
       pBA=sum(BA)/BAt[1], BAt=BAt[1]) %>% dplyr::ungroup()
     if (type=='BA'){PClass$p <- PClass$pBA}
-    HillNB <- dplyr::group_by(PClass, year, site, src) %>% dplyr::dplyr::summarise(Sh=-sum(p * log(p)),
+    HillNB <- dplyr::group_by(PClass, year, site, src) %>% dplyr::summarise(Sh=-sum(p * log(p)),
 	    NClass=n(), GS=1-sum(p^2), Simp=sum(p^2)) %>% dplyr::ungroup()
     if (is.numeric(dataSet$Var)){
-      GiniIndex <- dplyr::group_by(dataSet, year, site, src) %>% dplyr::dplyr::summarise(GI=Gini(Var,BA,weight)) %>% dplyr::ungroup()
+      GiniIndex <- dplyr::group_by(dataSet, year, site, src) %>% dplyr::summarise(GI=Gini(Var,BA,weight)) %>% dplyr::ungroup()
       DivIndex <- dplyr::left_join(HillNB, GiniIndex, by=c('year','site','src'))
     }else{
       DivIndex <- dplyr::mutate(HillNB, GI=NA) 
