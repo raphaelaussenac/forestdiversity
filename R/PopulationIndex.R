@@ -12,12 +12,12 @@ ReturnDivIndex <- function(evalSite, Inter=10, path='DATA'){
     if (!file.exists(paste0(path,'/','all_',evalSite,'.csv'))){stop('Need to build dataset first')}
     dataTemp <- read.csv(file=paste0(path,'/','all_',evalSite,'.csv'))
     DivIndexSize <- CalcDivIndex(dataTemp, Nvar="D_cm", Inter=Inter) %>%
-	    mutate(ShSize=Sh, GSSize=GS, SimpSize=Simp, GiSize=GI, NClassSize=NClass) %>%
+	    dplyr::mutate(ShSize=Sh, GSSize=GS, SimpSize=Simp, GiSize=GI, NClassSize=NClass) %>%
 	    dplyr::select(-Sh, -GS, -Simp, -GI, -NClass)
     DivIndexSp <- CalcDivIndex(dataTemp, Nvar="species", Inter=Inter) %>%
-	    mutate(ShSp=Sh, GSSp=GS, SimpSp=Simp, NSp=NClass) %>%
+	    dplyr::mutate(ShSp=Sh, GSSp=GS, SimpSp=Simp, NSp=NClass) %>%
 	    dplyr::select(-Sh, -GS, -Simp, -GI, -NClass)
-    DivIndex <- left_join(DivIndexSize, DivIndexSp, by=c('year','site','src'))
+    DivIndex <- dplyr::left_join(DivIndexSize, DivIndexSp, by=c('year','site','src'))
     return(as.data.frame(DivIndex))
 }
 
@@ -30,28 +30,28 @@ ReturnDivIndex <- function(evalSite, Inter=10, path='DATA'){
 #' @return A data.frame containing diversity metrics for each site/year/source
 #' @export
 CalcDivIndex <- function(dataSet, Nvar = 'D_cm', Inter = 10, type = 'BA'){
-    dataSet <- mutate(dataSet, Var=dataSet[[Nvar]])
+    dataSet <- dplyr::mutate(dataSet, Var=dataSet[[Nvar]])
     if (Nvar %in% c('D_cm','H_m','V_m3')){
-	    dataSet <- mutate(dataSet, Class = (1+floor((Var-Inter/2)/Inter))*Inter)
+	    dataSet <- dplyr::mutate(dataSet, Class = (1+floor((Var-Inter/2)/Inter))*Inter)
     }else if (Nvar=='species'){
-	    dataSet <- mutate(dataSet, Class=as.character(Var))
+	    dataSet <- dplyr::mutate(dataSet, Class=as.character(Var))
     }else{
 	    stop('Nvar specified not in output')
     }
 
     if (is.null(dataSet[["Var"]])){stop('Need to choose variable first')}
-    dataSet <- mutate(dataSet, BA=pi*(D_cm/200)^2*weight)
-    PClass <- group_by(dataSet, year, site, src) %>% mutate(N = sum(weight), BAt=sum(BA)) %>%
-      ungroup() %>% group_by(year, Class, site, src) %>% dplyr::summarise(p=(sum(weight)/N[1]),
-      pBA=sum(BA)/BAt[1], BAt=BAt[1]) %>% ungroup()
+    dataSet <- dplyr::mutate(dataSet, BA=pi*(D_cm/200)^2*weight)
+    PClass <- dplyr::group_by(dataSet, year, site, src) %>% dplyr::mutate(N = sum(weight), BAt=sum(BA)) %>%
+      dplyr::ungroup() %>% dplyr::group_by(year, Class, site, src) %>% dplyr::dplyr::summarise(p=(sum(weight)/N[1]),
+      pBA=sum(BA)/BAt[1], BAt=BAt[1]) %>% dplyr::ungroup()
     if (type=='BA'){PClass$p <- PClass$pBA}
-    HillNB <- group_by(PClass, year, site, src) %>% dplyr::summarise(Sh=-sum(p * log(p)),
-	    NClass=n(), GS=1-sum(p^2), Simp=sum(p^2)) %>% ungroup()
+    HillNB <- dplyr::group_by(PClass, year, site, src) %>% dplyr::dplyr::summarise(Sh=-sum(p * log(p)),
+	    NClass=n(), GS=1-sum(p^2), Simp=sum(p^2)) %>% dplyr::ungroup()
     if (is.numeric(dataSet$Var)){
-      GiniIndex <- group_by(dataSet, year, site, src) %>% dplyr::summarise(GI=Gini(Var,BA,weight)) %>% ungroup()
-      DivIndex <- left_join(HillNB, GiniIndex, by=c('year','site','src'))
+      GiniIndex <- dplyr::group_by(dataSet, year, site, src) %>% dplyr::dplyr::summarise(GI=Gini(Var,BA,weight)) %>% dplyr::ungroup()
+      DivIndex <- dplyr::left_join(HillNB, GiniIndex, by=c('year','site','src'))
     }else{
-      DivIndex <- mutate(HillNB, GI=NA) 
+      DivIndex <- dplyr::mutate(HillNB, GI=NA) 
     }
     return(DivIndex)
 }
