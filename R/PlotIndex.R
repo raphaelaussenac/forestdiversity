@@ -1,3 +1,7 @@
+#' Create a dummy virtual plot
+#'
+#' @return A data.frame of a virtual plot
+#' @export
 BuildDummy <- function(){
     Inter <- 10
     o <- read.csv('DATA/all_profound.csv')
