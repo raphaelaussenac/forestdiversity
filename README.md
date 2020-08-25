@@ -1,20 +1,30 @@
 ## Packages to compute forest diversity index in IMaestro project
 
 
-### Population level metrics :
-        Nb of species; Nb of size class
-        Hill Numbers (Shannon, Simpson)
+### Population (=stand) level metrics :
+Size-Distribution related : 
+        Nb of size class
+        Hill Numbers (Shannon, Simpson) based on Size Class
+        Skewness
         Gini index (species only)
-        Skewness of size
+        Skewness of size distribution
+        Gini of size distribution
 
-Each metric can be computed using species or size (DBH)
+Species-related :
+        Nb of species
+        Hill Numbers (Shannon, Simpson) based on species
 
 
-### Plot level metrics: spatial metrics are added to the former ones:
+Metrics are calculated for each year, each site and each data source
+
+### Plot level metrics: spatial metrics can be computed if each tree location are known
+Size-Distribution related : 
         Size segregation index
         Uniform angle index 
-        Species mingling index
         Structural Complexity index
+
+Species-related :
+        Species mingling index
 
 ### Landscape level metrics:
 
