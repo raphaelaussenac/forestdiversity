@@ -22,6 +22,12 @@ getData <- function(){
   DF <- left_join(DF, Da, by=c('ID'='STAND_ID'))
 }
 
+#' Compute Shannon Index
+#'
+#' This function compute the Shannon index for a gridded landscape 
+#' @param DFQuad, data.frame of gridded landscape from Quad function
+#' @return alpha, beta and gamma diversity based on Shannon Index
+#' @export
 ComputeSh <- function(DFQuad){
   plog <- function(x){
     x[is.na(x)] <- 0
@@ -40,6 +46,13 @@ ComputeSh <- function(DFQuad){
   return(c(alpha, beta, gamma))
 }
 
+#' Compute Shannon Index for a given scale
+#'
+#' This function compute the Shannon index for a landscape and a resolution
+#' @param DF, data.frame of landscape data
+#' @param Res, numeric resolution (in km) of the grid
+#' @return alpha, beta and gamma diversity based on Shannon Index
+#' @export
 ComputeShScale <- function(DF, Res=1){
   SH <- data.frame(N=1:9, Res=Res, Ngrid=NA, alpha=NA, beta=NA, gamma=NA)
   for (N in 1:9){
@@ -48,8 +61,15 @@ ComputeShScale <- function(DF, Res=1){
   }
   return(SH)
 }
-####
 
+#' Compute a gridded landscape
+#'
+#' This function compute the gridded landscape
+#' @param DF, data.frame of landscape data
+#' @param Res, numeric resolution (in km) of the grid
+#' @param N, integer from 1 to 9; here to include different grid configurations
+#' @return data.frame of gridded landscape
+#' @export
 Quad <- function(DF, Res=1, N=9){
     xrange <- range(DF$XCenter) * 1e-3
     yrange <- range(DF$YCenter) * 1e-3
@@ -61,7 +81,6 @@ Quad <- function(DF, Res=1, N=9){
 #    ygrid <- seq(floor(yrange[1]-Res/2), ceiling(yrange[2]+Res/2), by=Res)
     DF <- mutate(DF, xind=findInterval(XCenter * 1e-3, xgrid),
             yind=findInterval(YCenter * 1e-3, ygrid), Iind=paste(xind, yind, sep='/'))
-#    DF[is.na(DF) & !(is.factor(DF))] <- 0
     DF <- as.data.table(DF)
     pArea <- DF[, pArea:=Area/sum(Area), by=list(xind,yind)][, pArea]
     iClass  <- which(substr(names(DF),1,7)=='N_Class')
