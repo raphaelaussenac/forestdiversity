@@ -24,8 +24,8 @@ ReturnDivIndex <- function(evalSite, Inter=10, path='DATA'){
 
 #' Compute diversity metrics
 #'
-#' This function compute the Gini index for a population 
-#' @param Data.frame of population, can gather multiple sites, years and sources
+#' This function compute the Gini index and Hill numbers for a population 
+#' @param dataSet, data.frame of population, can gather multiple sites, years and sources
 #' @param Type string, define wether to compute proportion in terms of frequencies or relative basal area
 #' @return A data.frame containing diversity metrics for each site/year/source
 #' @export
