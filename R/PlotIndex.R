@@ -156,7 +156,7 @@ Compute_mingling <- function(TabDis, Nk=4, EdgeCorrection="NN1"){
     return(dplyr::mutate(Mk,Em=Em))
 }
 
-#' Compute Species mingling in a plot
+#' Compute Size differentiation in a plot
 #'
 #' This function takes a TabDis object and return mingling metrics
 #' @param TabDis object
