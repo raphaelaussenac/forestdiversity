@@ -7,7 +7,7 @@
 CalcDivIndex(dataSet, Nvar = "D_cm", Inter = 10, type = "BA")
 }
 \arguments{
-\item{Data.frame}{of population, can gather multiple sites, years and sources}
+\item{dataSet, }{data.frame of population, can gather multiple sites, years and sources}
 
 \item{Type}{string, define wether to compute proportion in terms of frequencies or relative basal area}
 }
@@ -15,5 +15,5 @@ CalcDivIndex(dataSet, Nvar = "D_cm", Inter = 10, type = "BA")
 A data.frame containing diversity metrics for each site/year/source
 }
 \description{
-This function compute the Gini index for a population
+This function compute the Gini index and Hill numbers for a population
 }

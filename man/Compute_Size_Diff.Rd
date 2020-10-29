@@ -2,7 +2,7 @@
 % Please edit documentation in R/PlotIndex.R
 \name{Compute_Size_Diff}
 \alias{Compute_Size_Diff}
-\title{Compute Species mingling in a plot}
+\title{Compute Size differentiation in a plot}
 \usage{
 Compute_Size_Diff(TabDis, Nk = 4, EdgeCorrection = "None")
 }
