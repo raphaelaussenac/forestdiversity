@@ -2,10 +2,13 @@
 
 export(BuildDummy)
 export(CalcDivIndex)
+export(ComputeSh)
+export(ComputeShScale)
 export(Compute_Size_Diff)
 export(Compute_Winkelmass)
 export(Compute_mingling)
 export(Gini)
+export(Quad)
 export(ReturnDivIndex)
 export(StructuralComplexityIndex)
 export(TabDist)
