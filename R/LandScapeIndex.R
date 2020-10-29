@@ -22,6 +22,27 @@ getData <- function(){
   DF <- left_join(DF, Da, by=c('ID'='STAND_ID'))
 }
 
+GridData <- function(DF, Res=5){
+   xrange <- range(DF$XCenter) * 1e-3
+   yrange <- range(DF$YCenter) * 1e-3
+   dgrid <- expand.grid(dx=seq(Res/10, Res/2, length.out=3), dy=seq(Res/10, Res/2, length.out=3))
+   dgrid <- dgrid[N, ]
+   xgrid <- seq((xrange[1]-dgrid$dx), (xrange[2]+Res/2), by=Res)
+   ygrid <- seq((yrange[1]-dgrid$dy), (yrange[2]+Res/2), by=Res)
+   DF <- mutate(DF, xind=findInterval(XCenter * 1e-3, xgrid),
+            yind=findInterval(YCenter * 1e-3, ygrid), Iind=paste(xind, yind, sep='/'))
+   iClass  <- which(substr(names(DF),1,7)=='N_Class')
+   DF <- as.data.table(DF)
+   DF[, iClass] <- 0 
+   Ng <- unique(DF$Iind)
+   for (i in Ng){
+     Col <- round(runif(1,1,length(iClass)-1))     
+     DF[DF$Iind==i, iClass[Col]] <- 1
+     DF[DF$Iind==i, iClass[Col]+1] <- 1
+  }
+  return(DF)
+}
+
 #' Compute Shannon Index
 #'
 #' This function compute the Shannon index for a gridded landscape 
