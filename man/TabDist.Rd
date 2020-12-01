@@ -4,12 +4,16 @@
 \alias{TabDist}
 \title{Compute distance between trees in a plot}
 \usage{
-TabDist(Plot, Nselec = 10)
+TabDist(DF, shape = "quadrat", coord, Nselec = 10)
 }
 \arguments{
-\item{Plot}{object, discribing ONE plot (one year, one site, one source,...)}
+\item{shape}{str: shape of the plot (quadrat or circular)}
 
-\item{Nselec}{int: number of neighboor retained, 10 by default}
+\item{coord}{vect: vector of the coordinates of the plot : (xmin, xmx, ymin, ymax) or (radius)}
+
+\item{Nselec}{int: number of neighboor retained, 10 by default, 10 is the max value}
+
+\item{data.frame}{DF: dataset}
 }
 \value{
 A TabDis object
