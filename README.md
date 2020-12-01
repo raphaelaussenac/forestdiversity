@@ -4,6 +4,10 @@ Outputs of model/data must be matrix with a line for each year/species/DBH.
 
 Variables recorded must be at least year, species, DBH and a weight.
 
+## Install the package
+Need the library devtools in R
+Then in R : devtools::install_gitlab('arnaud.guyennon/forestdiversity')
+
 
 ### Population (=stand) level metrics :
 DBH-Distribution related : 
