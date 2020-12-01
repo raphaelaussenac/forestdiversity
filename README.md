@@ -29,7 +29,7 @@ DBH-Distribution related :
 Species-related :
         Species mingling index
 
-#### Functions to compute diversity 
+#### How to compute spatial diversity  metrics
 Need first to compute a TabDist object using create_TabDist function using the data (data.frame), the shape of the plot and its coordinates
 Metrics can then be computed using the TabDist obejct
 Refs for the metrics and correction : 
