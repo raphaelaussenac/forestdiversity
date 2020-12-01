@@ -7,10 +7,14 @@
 createPlot(DF, shape = "quadrat", coord)
 }
 \arguments{
-\item{infile}{Path to the input file}
+\item{shape}{str: shape of the plot (quadrat or circular)}
+
+\item{coord}{vect: vector of the coordinates of the plot : (xmin, xmx, ymin, ymax) or (radius)}
+
+\item{data.frame}{DF: dataset}
 }
 \value{
-A matrix of the infile
+A Plot object
 }
 \description{
 This function takes a data.frame and return a Plot object. The data.frame
