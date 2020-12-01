@@ -35,13 +35,15 @@ Species-related :
 
 #### How to compute spatial diversity  metrics
 Need first to compute a TabDist object using create_TabDist function using the data (data.frame), the shape of the plot and its coordinates
-Metrics can then be computed using the TabDist obejct
+Metrics can then be computed using the TabDist object
+
+
 Refs for the metrics and correction : 
 
-Pommerening and UriaDiez, 2017 : Do large forest trees tend towards high species mingling ?
-Hui and Gadow, 2002 : Characterizing forest spatial structure and diversity
-Zenner and Hibbs, 2000 : A new method for modeling the heterogeneity of forest structure
-Pommerening and Stoyan, 2006 : Edge-correction needs in estimation indices of spatial forest structure
+	Pommerening and UriaDiez, 2017 : Do large forest trees tend towards high species mingling ?
+	Hui and Gadow, 2002 : Characterizing forest spatial structure and diversity
+	Zenner and Hibbs, 2000 : A new method for modeling the heterogeneity of forest structure
+	Pommerening and Stoyan, 2006 : Edge-correction needs in estimation indices of spatial forest structure
 
 ### Landscape level metrics 
 
