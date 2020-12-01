@@ -4,13 +4,14 @@
 \alias{StructuralComplexityIndex}
 \title{Compute Structural Complexity Index}
 \usage{
-StructuralComplexityIndex(Plot)
+StructuralComplexityIndex(DF, shape = "quadrat", coord)
 }
 \arguments{
-\item{Plot}{object}
-}
-\value{
-SCI num
+\item{shape}{str: shape of the plot (quadrat or circular)}
+
+\item{coord}{vect: vector of the coordinates of the plot : (xmin, xmx, ymin, ymax) or (radius)}
+
+\item{data.frame}{DF: dataset}
 }
 \description{
 This function takes a Plot object and return structural complexity index
