@@ -4,16 +4,16 @@
 #' @export
 BuildDummy <- function(){
     Inter <- 10
-    o <- read.csv('DATA/all_profound.csv')
-    o <- dplyr::filter(o, src=='4c',year==1967)
+    o <- data.frame(site="Random", year=2000, species=rep(c('piab', 'fasy'), each=1000),
+		    D_cm=runif(2000, 15, 50), H_cm=runif(2000,5, 50), weight=1)
     DF <- dplyr::mutate(o, X=runif(dim(o)[1],-10,10), Y=runif(dim(o)[1],-10, 10), ClassSize=(1+floor((D_cm-Inter/2)/Inter))*Inter)
     return(DF)
 }
 
 BuildDummy2 <- function(){
     Inter <- 10
-    o <- read.csv('DATA/all_profound.csv')
-    o <- dplyr::filter(o, src=='4c',year==1967)
+    o <- data.frame(site="Random", year=2000, species=rep(c('piab', 'fasy'), each=1000),
+		    D_cm=runif(2000, 15, 50), H_cm=runif(2000,5, 50))
     NN <- floor(sqrt(dim(o)[1]))
     o <- o[1:(NN^2),]
     XY <- expand.grid(seq(-10,10,length.out=NN), seq(-10,10,length.out=NN))
@@ -27,9 +27,10 @@ BuildDummy2 <- function(){
 #' must contain variables: species, D_cm, weight, X, Y 
 #' 
 #'
-#' @param infile Path to the input file
-#' @return A matrix of the infile
-#' @export
+#' @param data.frame DF: dataset
+#' @param shape str: shape of the plot (quadrat or circular)
+#' @param coord vect: vector of the coordinates of the plot : (xmin, xmx, ymin, ymax) or (radius)
+#' @return A Plot object
 createPlot <- function(DF, shape="quadrat", coord){
     if (("X" %in% colnames(DF) + "Y" %in% colnames(DF) +
 	"species" %in% colnames(DF) + 'D_cm' %in% colnames(DF))<3){
@@ -50,12 +51,14 @@ createPlot <- function(DF, shape="quadrat", coord){
 #' Compute distance between trees in a plot
 #'
 #' This function takes a Plot object and return a TabDis object 
-#' @param Plot object, discribing ONE plot (one year, one site, one source,...)
-#' @param Nselec int: number of neighboor retained, 10 by default
+#' @param data.frame DF: dataset
+#' @param shape str: shape of the plot (quadrat or circular)
+#' @param coord vect: vector of the coordinates of the plot : (xmin, xmx, ymin, ymax) or (radius)
+#' @param Nselec int: number of neighboor retained, 10 by default, 10 is the max value
 #' @return A TabDis object
 #' @export
-TabDist <- function(Plot, Nselec = 10){
-	require(data.table)
+TabDist <- function(DF, shape="quadrat", coord, Nselec = 10){
+    Plot <- createPlot(DF, shape=shape, coord=coord)
     if (!('Plot' %in% class(Plot))){stop('Need a Plot class arg')}
     Plot <- DisToBorder(Plot)
     DF <- Plot$DF
@@ -76,6 +79,13 @@ TabDist <- function(Plot, Nselec = 10){
     class(Tdis) <- append('DistanceTab', class(Tdis))
     return(Tdis)
 }
+
+#' Plot a TabDis object
+#'
+#' This function makes a plot of a TabDis object
+#' @param TabDis object, discribing ONE plot (one year, one site, one source,...)
+#' @param Nk int: number of neighboor to exclude/include border plots 
+#' @export
 
 plot.DistanceTab <- function(Tdis, Nk=4){
   Plot <- dplyr::group_by(Tdis$DF, V1) %>%
@@ -124,12 +134,12 @@ DisToBorder <- function(Plot){
 #' @export
 Compute_mingling <- function(TabDis, Nk=4, EdgeCorrection="NN1"){
 	if (Nk<=0|Nk>10){stop('Number of k neighbours Nk must lie between 1 and 10')}
-    TabDis <- dplyr::mutate(TabDis, I1=sp1!=sp2)
+    DFDis <- dplyr::mutate(TabDis$DF, I1=sp1!=sp2)
     if (TabDis$shape=='circular'){
-        Mg <- dplyr::group_by(TabDis, V1) %>% dplyr::summarise(k=sum(I1[1:Nk]), Mi=k/Nk, AllIn=(Dis[Nk]<=DisToBord[Nk])>0,
+        Mg <- dplyr::group_by(DFDis, V1) %>% dplyr::summarise(k=sum(I1[1:Nk]), Mi=k/Nk, AllIn=(Dis[Nk]<=DisToBord[Nk])>0,
            Fi=(TabDis$coord-Dis[Nk])^2*pi) %>% dplyr::ungroup()
     }else if (TabDis$shape=='quadrat'){
-        Mg <- dplyr::group_by(TabDis, V1) %>% dplyr::summarise(k=sum(I1[1:Nk]), Mi=k/Nk, AllIn=(Dis[Nk]<=DisToBord[Nk])>0,
+        Mg <- dplyr::group_by(DFDis, V1) %>% dplyr::summarise(k=sum(I1[1:Nk]), Mi=k/Nk, AllIn=(Dis[Nk]<=DisToBord[Nk])>0,
            Fi=(abs(diff(TabDis$coord[c(1,2)]))-Dis[Nk])*(abs(diff(TabDis$coord[c(3,4)]))-Dis[Nk])) %>% dplyr::ungroup()
     }
     switch(EdgeCorrection,
@@ -150,7 +160,7 @@ Compute_mingling <- function(TabDis, Nk=4, EdgeCorrection="NN1"){
 	},
         stop("Need a valid edge correction (NN1, NN2, Exclude, None)")
     )
-    TT <- dplyr::group_by(TabDis, V1) %>% dplyr::summarise(species=sp1[1],ClassSize=ClassSize1[1]) %>% dplyr::ungroup()
+    TT <- dplyr::group_by(DFDis, V1) %>% dplyr::summarise(species=sp1[1],ClassSize=ClassSize1[1]) %>% dplyr::ungroup()
     Ni <- dplyr::group_by(TT, species) %>% dplyr::summarise(N=n()) %>% dplyr::ungroup() %>% dplyr::mutate(Nt=dim(TT)[1])
     Em <-  sum(Ni$N * (Ni$Nt - Ni$N) / (Ni$Nt * (Ni$Nt-1)))
     return(dplyr::mutate(Mk,Em=Em))
@@ -166,16 +176,16 @@ Compute_mingling <- function(TabDis, Nk=4, EdgeCorrection="NN1"){
 #' @export
 Compute_Size_Diff <- function(TabDis, Nk=4, EdgeCorrection='None'){
 	if (Nk<=0|Nk>10){stop('Number of k neighbours Nk must lie between 1 and 10')}
-      N <- length(unique(TabDis$V1))
-      TabDis <- dplyr::mutate(TabDis, I=rep(1:10, N)) %>% dplyr::filter(I<=Nk)
-      TabDis <- dplyr::mutate(TabDis, DBHmax=apply(cbind(TabDis$DBH1, TabDis$DBH2), 1, max),
-	DBHmin=apply(cbind(TabDis$DBH1, TabDis$DBH2), 1, min))
+      N <- length(unique(TabDis$DF$V1))
+      DFDis <- dplyr::mutate(TabDis$DF, I=rep(1:10, N)) %>% dplyr::filter(I<=Nk)
+      DFDis <- dplyr::mutate(DFDis, DBHmax=apply(cbind(DFDis$DBH1, DFDis$DBH2), 1, max),
+	DBHmin=apply(cbind(DFDis$DBH1, DFDis$DBH2), 1, min))
     if (TabDis$shape=='circular'){
-        SiDi <- dplyr::group_by(TabDis, V1) %>% dplyr::summarise(Ti=1-sum(DBHmin/DBHmax) / Nk,
+        SiDi <- dplyr::group_by(DFDis, V1) %>% dplyr::summarise(Ti=1-sum(DBHmin/DBHmax) / Nk,
            AllIn=(Dis[Nk]<=DisToBord[Nk])>0,
            Fi=(TabDis$coord-Dis[Nk])^2*pi) %>% dplyr::ungroup()
     }else if (TabDis$shape=='quadrat'){
-        SiDi <- dplyr::group_by(TabDis, V1) %>% dplyr::summarise(Ti=1-sum(DBHmin/DBHmax)/Nk,
+        SiDi <- dplyr::group_by(DFDis, V1) %>% dplyr::summarise(Ti=1-sum(DBHmin/DBHmax)/Nk,
            AllIn=(Dis[Nk]<=DisToBord[Nk])>0,
            Fi=(abs(diff(TabDis$coord[c(1,2)]))-Dis[Nk])*(abs(diff(TabDis$coord[c(3,4)]))-Dis[Nk])) %>% dplyr::ungroup()
     }
@@ -192,7 +202,7 @@ Compute_Size_Diff <- function(TabDis, Nk=4, EdgeCorrection='None'){
 	},
         stop("Need a valid edge correction (NN1, NN2, Exclude, None)")
     )
-    TT <- dplyr::group_by(TabDis, V1) %>% dplyr::summarise(DBH=DBH1[1]) %>% dplyr::ungroup() %>% arrange(DBH)
+    TT <- dplyr::group_by(DFDis, V1) %>% dplyr::summarise(DBH=DBH1[1]) %>% dplyr::ungroup() %>% arrange(DBH)
     TT <- cbind(TT,R=c(0, cumsum(TT$DBH)[1:(N-1)]))
     ET <- 1 - 2/(N*(N-1)) * sum(TT$R/TT$DBH)
     return(cbind(T, ET=ET))
@@ -231,7 +241,7 @@ Compute_Winkelmass <- function(TabDis, Nk=4){
 	   listAng[listAng>180] <- 360 -  listAng[listAng>180]
 	   return(sum(listAng<=(360 / Nk)))
    }
-	   Tab <- 1 + permutations(3,3)
+	   Tab <- 1 + e1071::permutations(3)
 	   Tab <- cbind(10+Tab[,1],Tab[,1]*10+Tab[,2],Tab[,2]*10+Tab[,3],Tab[,3]*10+1)
 
   listAngles <- function(X1, Y1, X2, Y2, iN, Nk, V1, AllIn, Tab){
@@ -253,8 +263,10 @@ Compute_Winkelmass <- function(TabDis, Nk=4){
 	   listAng[listAng>180] <- 360 -  listAng[listAng>180]
 	   return(sum(listAng<=(360 / Nk)))
    }
-	 return(dplyr::group_by(DF, V1) %>% dplyr::summarise(Wink=listAngles(X1, Y1, X2, Y2,
-	   iN=iN, Nk=Nk, V1, AllIn, Tab=Tab)/Nk, AllIn=AllIn[1]) %>% dplyr::ungroup())
+	 TabWink <- dplyr::group_by(DF, V1) %>% dplyr::summarise(Wink=listAngles(X1, Y1, X2, Y2,
+	     iN=iN, Nk=Nk, V1, AllIn, Tab=Tab)/Nk, AllIn=AllIn[1]) %>% dplyr::ungroup() %>%
+	     dplyr::filter(AllIn==TRUE)
+	 return(mean(TabWink$Wink))
 }
 
 ############ Structural complexity
@@ -276,10 +288,12 @@ TriangleSurface <- function(TriDF){
 ##' Compute Structural Complexity Index
 #'
 #' This function takes a Plot object and return structural complexity index
-#' @param Plot object
-#' @return SCI num
+#' @param data.frame DF: dataset
+#' @param shape str: shape of the plot (quadrat or circular)
+#' @param coord vect: vector of the coordinates of the plot : (xmin, xmx, ymin, ymax) or (radius)
 #' @export
-StructuralComplexityIndex <- function(Plot){
+StructuralComplexityIndex <- function(DF, shape='quadrat', coord){
+  Plot <- create_Plot(DF, shape=shape, coord=coord)
   if (dim(Plot$DF)[1]<3){stop("Need at least 3 points to build triangles")}
   if (!('H_m' %in% colnames(Plot$DF))){stop('Need tree heights (H_m)')}
   Del <- deldir::deldir(Plot$DF$X, Plot$DF$Y, z=Plot$DF$H_m)
