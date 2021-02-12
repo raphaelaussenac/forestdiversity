@@ -67,13 +67,17 @@ CalcDivIndex <- function(dataSet, Nvar = 'D_cm', Inter = 10, type = 'BA'){
 
 #' Compute Gini index
 #'
-#' This function compute the Gini index for a population 
+#' This function compute the Gini index for a population based on the BA proportion 
 #' @param Size numeric vector, size of each treee in the population (in cm)
 #' @param BA numeric vector, basal area associated with each tree (in m2ha-1)
 #' @param Weight, numeric vector, weight associated with each tree
 #' @return The Gini index for the population
 #' @export
 GiniPop <- function (Size, BA, weight = rep(1, length = length(x))){
+	# We handle cases where several trees have same size
+    DF <- group_by(data.frame(Size, BA, weight), Size) %>%
+	   summarise(BA=sum(BA), weight=sum(weight)) %>% ungroup()
+    Size <- DF$Size; BA=DF$BA; weight=DF$weight
     oSize <- order(Size)
     Size <- Size[oSize]
     BA <- BA[oSize]
