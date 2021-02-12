@@ -238,8 +238,8 @@ Analyse_Gini <- function(DF){
     LandscapeRaw <- read.asciigrid('DATA/Bauges_Landscape/BaugesInit/cellID.asc')
     MatLandscape <- raster::as.matrix(raster(LandscapeRaw))
     DF <- as.data.table(DF)
-   DFAll <- NULL
-   for (k in 1:dim(CompoCl)[1]){
+    DFAll <- NULL
+    for (k in 1:dim(CompoCl)[1]){
 	   Examp <- CompoCl[k, ]
 #	   tt <- filter(AFilt, cellID==Examp$cellEx)
 #	   Focal <- filter(DF, cellID==Examp$cellEx)[1,]
@@ -249,10 +249,10 @@ Analyse_Gini <- function(DF){
 	   DFt <- DF[cellID %in% Neighboor, ]	  
 	   Dg <- sqrt(sum(DFt$dbh^2*DFt$n)/sum(DFt$n))
 	   Are <- length(unique(DFt$cellID)) * 0.25^2
-	   BA <- sum(pi*(DFt$dbh/200)^2) / Area
-	   Gin <- Gini(Size=DFt$dbh, BA=DFt$dbh^2, weight=DFt$n)
-	   NHA <- sum(DFt$n) / Area
-	   DFt <- mutate(DFt, Dg=Dg, BA=BA, Gini=Gin, NHA=NHA)
+	   Ba <- pi * sum(DFt$n*(DFt$dbh/200)^2) / Are
+	   Gin <- GiniPop(Size=DFt$dbh, BA=DFt$dbh^2, weight=DFt$n)
+	   NHa <- sum(DFt$n) / Are
+	   DFt <- mutate(DFt, Dg=Dg, BA=Ba, Gini=Gin, NHA=NHa)
 	   DFt <- mutate(DFt, Compo=Examp$Comp, Cluster=Examp$cl, Ncells=Examp$Ncells, Area=Are)
 	   DFAll <- rbind(DFAll, DFt)
    }
