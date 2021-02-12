@@ -187,12 +187,8 @@ Analyse_Gini <- function(DF){
 		paste0('Tri', Sp2, Sp1, Sp3), paste0('Tri', Sp2, Sp3, Sp1),
 		paste0('Tri', Sp3, Sp1, Sp2), paste0('Tri', Sp3, Sp2, Sp1))
     A <- readRDS('outGini3.Rds') %>% filter(Area==1)
-#    levssp <- levels(DF$sp)
-#A <- mutate(A, Sp1=levssp[Sp1])
-#A <- mutate(A, Sp2=levssp[Sp2])
-#names(A)[9] <- 'PrSp2'
 #### Find MonoSp
-#    A <- mutate(A, Comp=NA)
+    A <- mutate(A, Comp=NA)
     A$Comp[A$PrSp1>0.75] <- paste0('Mono', A$Sp1[A$PrSp1>0.75])
 #### Find Bisp
     ind <- which(A$PrSp1<=0.75 & A$PrSp1>0.25 & A$PrSp2>=0.25 & (A$PrSp1+A$PrSp2)>0.75)
@@ -241,8 +237,6 @@ Analyse_Gini <- function(DF){
     DFAll <- NULL
     for (k in 1:dim(CompoCl)[1]){
 	   Examp <- CompoCl[k, ]
-#	   tt <- filter(AFilt, cellID==Examp$cellEx)
-#	   Focal <- filter(DF, cellID==Examp$cellEx)[1,]
 	   Focalij <- which(MatLandscape==Examp$cellEx, arr.ind=TRUE)
 	   Neighboor <- as.vector(MatLandscape[Focalij[1]:(Focalij[1]+3), 
 		   Focalij[2]:(Focalij[2]+3)])
@@ -250,7 +244,7 @@ Analyse_Gini <- function(DF){
 	   Dg <- sqrt(sum(DFt$dbh^2*DFt$n)/sum(DFt$n))
 	   Are <- length(unique(DFt$cellID)) * 0.25^2
 	   Ba <- pi * sum(DFt$n*(DFt$dbh/200)^2) / Are
-	   Gin <- GiniPop(Size=DFt$dbh, BA=DFt$dbh^2, weight=DFt$n)
+	   Gin <- GiniPop(Size=DFt$dbh, BA=DFt$n*DFt$dbh^2, weight=DFt$n)
 	   NHa <- sum(DFt$n) / Are
 	   DFt <- mutate(DFt, Dg=Dg, BA=Ba, Gini=Gin, NHA=NHa)
 	   DFt <- mutate(DFt, Compo=Examp$Comp, Cluster=Examp$cl, Ncells=Examp$Ncells, Area=Are)
@@ -282,13 +276,14 @@ ComputeGini3 <- function(DF){
                 PopI <- DF[cellID %in% NeighboorID, ]
   	        PopI <- PopI[!is.na(dbh), ]
  	        if (dim(PopI)[1]>0){
-                    GiniI <- Gini(Size=PopI$dbh, BA=PopI$dbh^2, weight=PopI$n)
-   	            Psp <- PopI[, .(pBA=sum(dbh^2)), by=sp] %>% mutate(pBA=pBA/sum(pBA))
+                    GiniI <- GiniPop(Size=PopI$dbh, BA=PopI$dbh^2*PopI$n, weight=PopI$n)
+   	            Psp <- PopI[, .(pBA=sum(n*dbh^2)), by=sp] %>% mutate(pBA=pBA/sum(pBA))
                     Psp <- arrange(Psp, desc(pBA))
  	            OUT <- data.frame(cellID=MatLandscape[i, j], Area=length(unique(PopI$cellID)) * 0.25^2) %>%
                         mutate(NHA=sum(PopI$n)/Area, Gini=GiniI, Dg=sqrt(sum(PopI$n*PopI$dbh^2)/sum(PopI$n))) %>%
-  	                mutate(Sp1=as.character(Psp$sp[1]), PrSp1=Psp$pBA[1], Sp2=as.character(Psp$sp[2]), PrSp2=Psp$pBA[2],
-       	                Sp3=Psp$sp[3], PrSp3=Psp$pBA[3])
+  	                mutate(Sp1=as.character(Psp$sp[1]), PrSp1=Psp$pBA[1],
+			Sp2=as.character(Psp$sp[2]), PrSp2=Psp$pBA[2],
+		       	Sp3=as.character(Psp$sp[3]), PrSp3=Psp$pBA[3])
 	                JJ[k, ] <- OUT
 	        }
 	        k <- k+1
@@ -298,7 +293,8 @@ ComputeGini3 <- function(DF){
     }
     tic()
     cl <- makeForkCluster(6)
-    JJ <- do.call(rbind, parLapply(cl, 5:NRow, getOutRow, MatLandscape=MatLandscape,DF=DF,DFstand=DFstand))
+    JJ <- do.call(rbind, parLapply(cl, 5:NRow, getOutRow,
+        MatLandscape=MatLandscape, DF=DF, DFstand=DFstand))
     stopCluster(cl)
     toc()
     saveRDS(file='outGini3.Rds', JJ)
