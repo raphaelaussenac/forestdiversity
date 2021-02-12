@@ -75,9 +75,9 @@ CalcDivIndex <- function(dataSet, Nvar = 'D_cm', Inter = 10, type = 'BA'){
 #' @export
 GiniPop <- function (Size, BA, weight = rep(1, length = length(x))){
 	# We handle cases where several trees have same size
-    DF <- group_by(data.frame(Size, BA, weight), Size) %>%
-	   summarise(BA=sum(BA), weight=sum(weight)) %>% ungroup()
-    Size <- DF$Size; BA=DF$BA; weight=DF$weight
+    DF <- group_by(data.frame(S=Size, B=BA, W=weight), S) %>%
+	   summarise(B=sum(B), W=sum(W)) %>% ungroup()
+    Size <- DF$S; BA=DF$B; weight=DF$W
     oSize <- order(Size)
     Size <- Size[oSize]
     BA <- BA[oSize]
