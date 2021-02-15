@@ -40,26 +40,30 @@ CalcDivIndex <- function(dataSet, Nvar = 'D_cm', Inter = 10, type = 'BA'){
     }
     if (is.null(dataSet[["Var"]])){stop('Need to choose variable first')}
     dataSet <- dplyr::mutate(dataSet, BA=pi*(D_cm/200)^2*weight)
-    if (!('src' %in% names(dataSet))){dataSet <- mutate(dataSet, src='1')}
+    if (!('src' %in% names(dataSet))){dataSet <- dplyr::mutate(dataSet, src='1')}
     if (type=='BA'){
-        if (is.numeric(data$Var)){
-             DivIndex <- dplyr::group_by(dataSet, year, site, src) %>%
-     	         dplyr::summarise(Gini=GiniPop(Var, BA, weight), H=HillPop(Class, BA)) %>% ungroup()
-             DivIndex <- cbind(DivIndex[, 1:4], HillNB$H)
+        if (is.numeric(dataSet$Var)){
+             DivIndex <- dplyr::group_by(dataSet, year, site, src)
+             DivIndex <- dplyr::summarise(DivIndex, Gini=GiniPop(Var, BA, weight), H=HillPop(Class, BA))
+	     DivIndex <- dplyr::ungroup(DivIndex)
+             DivIndex <- cbind(DivIndex[, 1:4], DivIndex$H)
 	}else{
-             DivIndex <- dplyr::group_by(dataSet, year, site, src) %>%
-     	         dplyr::summarise(H=HillPop(Class, BA)) %>% ungroup()
-             DivIndex <- cbind(DivIndex[, 1:3], HillNB$H)
+             DivIndex <- dplyr::group_by(dataSet, year, site, src)
+             DivIndex <- dplyr::summarise(DivIndex, H=HillPop(Class, BA))
+	     DivIndex <- dplyr::ungroup(DivIndex)
+             DivIndex <- cbind(DivIndex[, 1:3], DivIndex$H)
 	}
     }else{
-        if (is.numeric(data$Var)){
-             DivIndex <- dplyr::group_by(dataSet, year, site, src) %>%
-     	         dplyr::summarise(Gini=GiniPop(Var, BA, weight), H=HillPop(Class, weight)) %>% ungroup()
-             DivIndex <- cbind(DivIndex[, 1:4], HillNB$H)
+        if (is.numeric(dataSet$Var)){
+             DivIndex <- dplyr::group_by(dataSet, year, site, src)
+             DivIndex <- dplyr::summarise(DivIndex, Gini=GiniPop(Var, BA, weight), H=HillPop(Class, weight))
+	     DivIndex <- dplyr::ungroup(DivIndex)
+             DivIndex <- cbind(DivIndex[, 1:4], DivIndex$H)
 	}else{
-             DivIndex <- dplyr::group_by(dataSet, year, site, src) %>%
-     	         dplyr::summarise(H=HillPop(Class, BA)) %>% ungroup()
-             DivIndex <- cbind(DivIndex[, 1:3], HillNB$H)
+             DivIndex <- dplyr::group_by(dataSet, year, site, src)
+             DivIndex <- dplyr::summarise(DivIndex, H=HillPop(Class, BA))
+	     DivIndex <- dplyr::ungroup(DIvIndex)
+             DivIndex <- cbind(DivIndex[, 1:3], DivIndex$H)
 	}
     }
     return(DivIndex)
@@ -75,8 +79,9 @@ CalcDivIndex <- function(dataSet, Nvar = 'D_cm', Inter = 10, type = 'BA'){
 #' @export
 GiniPop <- function (Size, BA, weight = rep(1, length = length(x))){
 	# We handle cases where several trees have same size
-    DF <- group_by(data.frame(S=Size, B=BA, W=weight), S) %>%
-	   summarise(B=sum(B), W=sum(W)) %>% ungroup()
+    DF <- dplyr::group_by(data.frame(S=Size, B=BA, W=weight), S)
+    DF <- dplyr::summarise(DF, B=sum(B), W=sum(W))
+    DF <- dplyr::ungroup(DF)
     Size <- DF$S; BA=DF$B; weight=DF$W
     oSize <- order(Size)
     Size <- Size[oSize]
@@ -106,8 +111,10 @@ GiniPop <- function (Size, BA, weight = rep(1, length = length(x))){
 #' @return The Hill Numbers index for the population
 #' @export
 HillPop <- function (Class, weight){
-    P <- group_by(data.frame(Class, weight), Class) %>%
-	    summarise(p = sum(weight)) %>% ungroup() %>% mutate(p=p/sum(p))
+    P <- dplyr::group_by(data.frame(Class, weight), Class)
+    P <- dplyr::summarise(P, p = sum(weight))
+    P <- dplyr::ungroup(P)
+    P <- dplyr::mutate(P, p=p/sum(p))
     return(data.frame(Sh=-sum(P$p*log(P$p)), GS=1-sum(P$p^2), Simp=sum(P$p^2), Nclass=dim(P)[1]))
 }
 
