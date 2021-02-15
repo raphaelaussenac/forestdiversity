@@ -69,7 +69,7 @@ TabDist <- function(DF, shape="quadrat", coord, Nselec = 10){
 
     V <- cbind(V, Dis=calcd(V$V1,V$V2, coo=coo))
     V <- rbind(V, data.table::data.table(V1=V$V2, V2=V$V1, Dis=V$Dis))
-    Tdis <- setorder(V, V1, Dis)
+    Tdis <- data.table::setorder(V, V1, Dis)
     if (N >= Nselec){Tdis <- Tdis[rep(0:(Nselec-1), N)+rep(seq(1,N*(N-1),by=(N-1)),each=Nselec)]}
     Tdis <- dplyr::mutate(Tdis, sp1=DF$species[Tdis$V1], X1=DF$X[Tdis$V1], Y1=DF$Y[Tdis$V1],
         X2=DF$X[Tdis$V2], Y2=DF$Y[Tdis$V2], sp2=DF$species[Tdis$V2],
@@ -88,18 +88,20 @@ TabDist <- function(DF, shape="quadrat", coord, Nselec = 10){
 #' @export
 
 plot.DistanceTab <- function(Tdis, Nk=4){
-  Plot <- dplyr::group_by(Tdis$DF, V1) %>%
-	  dplyr::summarise(species=sp1[1], DBH1=DBH1[1], ClassSize=ClassSize1[1],
-	  X=X1[1], Y=Y1[1], AllIn=(Dis[Nk]<=DisToBord[Nk])) %>% dplyr::ungroup()
+    Plot <- dplyr::group_by(Tdis$DF, V1)
+    Plot <- dplyr::summarise(Plot, species=sp1[1], DBH1=DBH1[1], ClassSize=ClassSize1[1],
+ 	  X=X1[1], Y=Y1[1], AllIn=(Dis[Nk]<=DisToBord[Nk]))
+    Plot <- dplyr::ungroup(Plot)
+
   if (Tdis$shape=='quadrat'){
-    pl <- ggplot2::ggplot() + theme(text=element_text(size=20)) + 
-          ggplot2::geom_point(data=dplyr::filter(Plot, AllIn==TRUE), aes(x=X, y=Y, fill=species, size= DBH1),pch=21) + 
-	  ggplot2::geom_point(data=dplyr::filter(Plot, AllIn==FALSE), aes(x=X, y=Y, col=species, size= DBH1), pch=1) +
-          ggplot2::geom_rect(aes(xmin=Tdis$coord[1], xmax=Tdis$coord[2], ymin=Tdis$coord[3], ymax=Tdis$coord[4]), fill=NA,col='black')
+    pl <- ggplot2::ggplot() + ggplot2::theme(text=ggplot2::element_text(size=20)) + 
+          ggplot2::geom_point(data=dplyr::filter(Plot, AllIn==TRUE), ggplot2::aes(x=X, y=Y, fill=species, size= DBH1),pch=21) + 
+	  ggplot2::geom_point(data=dplyr::filter(Plot, AllIn==FALSE), ggplot2::aes(x=X, y=Y, col=species, size= DBH1), pch=1) +
+          ggplot2::geom_rect(ggplot2::aes(xmin=Tdis$coord[1], xmax=Tdis$coord[2], ymin=Tdis$coord[3], ymax=Tdis$coord[4]), fill=NA,col='black')
   }else if (Tdis$shape=='circular'){
-    pl <- ggplot2::ggplot() + theme(text=element_text(size=20)) + 
-          ggplot2::geom_point(data=dplyr::filter(Plot, AllIn==TRUE), aes(x=X, y=Y, fill=species, size= DBH1),pch=21) + 
-	  ggplot2::geom_point(data=dplyr::filter(Plot, AllIn==FALSE), aes(x=X, y=Y, col=species, size= DBH1), pch=1)
+    pl <- ggplot2::ggplot() + ggplot2::theme(text=ggplot2::element_text(size=20)) + 
+          ggplot2::geom_point(data=dplyr::filter(Plot, AllIn==TRUE), ggplot2::aes(x=X, y=Y, fill=species, size= DBH1),pch=21) + 
+	  ggplot2::geom_point(data=dplyr::filter(Plot, AllIn==FALSE), ggplot2::aes(x=X, y=Y, col=species, size= DBH1), pch=1)
   }
   print(pl)
 }
