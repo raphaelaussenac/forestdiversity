@@ -19,3 +19,7 @@ Imports:
     data.table,
     deldir,
     e1071
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
