@@ -41,7 +41,7 @@ CalcDivIndex <- function(dataSet, Nvar = 'D_cm', Inter = 10, type = 'BA'){
     if (is.null(dataSet[["Var"]])){stop('Need to choose variable first')}
     if (!('year' %in% names(dataSet))){dataSet <- dplyr::mutate(dataSet, year='NA')}
     if (!('site' %in% names(dataSet))){dataSet <- dplyr::mutate(dataSet, site='NA')}
-    if (!('weight' %in% names(dataSet))){dataSet <- dplyr::mutate(dataSet, weight='1')}
+    if (!('weight' %in% names(dataSet))){dataSet <- dplyr::mutate(dataSet, weight=1)}
     if (!('src' %in% names(dataSet))){dataSet <- dplyr::mutate(dataSet, src='1')}
     dataSet <- dplyr::mutate(dataSet, BA=pi*(D_cm/200)^2*weight)
     if (type=='BA'){
