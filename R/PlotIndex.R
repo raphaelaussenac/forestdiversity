@@ -61,8 +61,8 @@ createPlot <- function(DF, shape="quadrat", coord, Inter=10){
 #' @param Nselec int: number of neighboor retained, 10 by default, 10 is the max value
 #' @return A TabDis object
 #' @export
-TabDist <- function(DF, shape="quadrat", coord, Nselec = 10){
-    Plot <- createPlot(DF, shape=shape, coord=coord)
+TabDist <- function(DF, shape="quadrat", coord, Nselec = 10, Inter=10){
+    Plot <- createPlot(DF, shape=shape, coord=coord, Inter=Inter)
     Plot <- DisToBorder(Plot)
     DF <- Plot$DF
     N <- dim(DF)[1]
@@ -114,6 +114,7 @@ plot.DistanceTab <- function(Tdis, Nk=4){
 #' This function takes a Plot object and return a TabDis object 
 #' @param Plot object
 #' @return A Plot object with DisToBorder variable in the DF
+#' @export
 DisToBorder <- function(Plot){
   if (!('Plot' %in% class(Plot))){stop('Need a Plot class arg')}
   DF <- Plot$DF
