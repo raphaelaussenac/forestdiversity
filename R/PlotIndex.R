@@ -24,17 +24,18 @@ BuildDummy2 <- function(){
 #' Create a Plot object
 #'
 #' This function takes a data.frame and return a Plot object. The data.frame
-#' must contain variables: species, D_cm, weight, X, Y 
+#' must contain variables: species, D_cm, X, Y 
 #' 
 #'
 #' @param data.frame DF: dataset
 #' @param shape str: shape of the plot (quadrat or circular)
 #' @param coord vect: vector of the coordinates of the plot : (xmin, xmx, ymin, ymax) or (radius)
+#' @param numeric Inter: Interval for size classes (10 cm by default)
 #' @return A Plot object
-createPlot <- function(DF, shape="quadrat", coord){
+createPlot <- function(DF, shape="quadrat", coord, Inter=10){
     if (("X" %in% colnames(DF) + "Y" %in% colnames(DF) +
 	"species" %in% colnames(DF) + 'D_cm' %in% colnames(DF))<3){
-          stop('Need coordinates with names X and Y, and species, and DDBH (D_cm)')
+          stop('Need coordinates with names X and Y, and species, and DBH (D_cm)')
         }
     if (sum(is.na(DF[,c('species','X','Y')])) > 0){
 	    stop('Watch for the NA values')
@@ -43,9 +44,11 @@ createPlot <- function(DF, shape="quadrat", coord){
     if (shape=="quadrat" & length(coord)!=4){stop('Need coord=(xmin, xmax, ymin, ymax) for quadrats')}
     if (shape=="circular" & length(coord)!=4){stop('Need coord=R for circular plots')}
     if (!(shape %in% c('quadrat','circular'))){stop('shape must be quadrat or circular')}
-  Plot <- list(DF=DF, shape=shape, coord=coord)
-  class(Plot) <- append("Plot", class(DF))
-  return(Plot)
+    if (!('weight' %in% names(DF))){DF <- dplyr::mutate(DF, weight=1)}
+    DF <- dplyr::mutate(DF, ClassSize=(1+floor((D_cm-Inter/2)/Inter))*Inter) 
+    Plot <- list(DF=DF, shape=shape, coord=coord)
+    class(Plot) <- append("Plot", class(DF))
+    return(Plot)
 }
 
 #' Compute distance between trees in a plot
@@ -59,7 +62,6 @@ createPlot <- function(DF, shape="quadrat", coord){
 #' @export
 TabDist <- function(DF, shape="quadrat", coord, Nselec = 10){
     Plot <- createPlot(DF, shape=shape, coord=coord)
-    if (!('Plot' %in% class(Plot))){stop('Need a Plot class arg')}
     Plot <- DisToBorder(Plot)
     DF <- Plot$DF
     N <- dim(DF)[1]
