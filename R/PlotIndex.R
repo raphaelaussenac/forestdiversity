@@ -74,7 +74,7 @@ TabDist <- function(DF, shape="quadrat", coord, Nselec = 10, Inter=10){
     V <- cbind(V, Dis=calcd(V$V1,V$V2, coo=coo))
     V <- rbind(V, data.table::data.table(V1=V$V2, V2=V$V1, Dis=V$Dis))
     Tdis <- data.table::setorder(V, V1, Dis)
-    if (N >= Nselec){Tdis <- Tdis[rep(0:(Nselec-1), N)+rep(seq(1,N*(N-1),by=(N-1)),each=Nselec)]}
+    if (N >= Nselec){Tdis <- Tdis[rep(0:(Nselec-1), N)+rep(seq(1,N*(N-1),by=(N-1)), each=Nselec),]}
     Tdis <- dplyr::mutate(Tdis, sp1=DF$species[Tdis$V1], X1=DF$X[Tdis$V1], Y1=DF$Y[Tdis$V1],
         X2=DF$X[Tdis$V2], Y2=DF$Y[Tdis$V2], sp2=DF$species[Tdis$V2],
         DBH1=DF$D_cm[Tdis$V1], DBH2=DF$D_cm[Tdis$V2], ClassSize1=DF$ClassSize[Tdis$V2],
