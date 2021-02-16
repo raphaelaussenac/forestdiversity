@@ -32,6 +32,7 @@ BuildDummy2 <- function(){
 #' @param coord vect: vector of the coordinates of the plot : (xmin, xmx, ymin, ymax) or (radius)
 #' @param numeric Inter: Interval for size classes (10 cm by default)
 #' @return A Plot object
+#' @export
 createPlot <- function(DF, shape="quadrat", coord, Inter=10){
     if (("X" %in% colnames(DF) + "Y" %in% colnames(DF) +
 	"species" %in% colnames(DF) + 'D_cm' %in% colnames(DF))<3){
@@ -297,7 +298,7 @@ TriangleSurface <- function(TriDF){
 #' @param coord vect: vector of the coordinates of the plot : (xmin, xmx, ymin, ymax) or (radius)
 #' @export
 StructuralComplexityIndex <- function(DF, shape='quadrat', coord){
-  Plot <- create_Plot(DF, shape=shape, coord=coord)
+  Plot <- createPlot(DF, shape=shape, coord=coord)
   if (dim(Plot$DF)[1]<3){stop("Need at least 3 points to build triangles")}
   if (!('H_m' %in% colnames(Plot$DF))){stop('Need tree heights (H_m)')}
   Del <- deldir::deldir(Plot$DF$X, Plot$DF$Y, z=Plot$DF$H_m)
