@@ -4,7 +4,7 @@
 \alias{TabDist}
 \title{Compute distance between trees in a plot}
 \usage{
-TabDist(DF, shape = "quadrat", coord, Nselec = 10)
+TabDist(DF, shape = "quadrat", coord, Nselec = 10, Inter = 10)
 }
 \arguments{
 \item{shape}{str: shape of the plot (quadrat or circular)}
@@ -14,6 +14,8 @@ TabDist(DF, shape = "quadrat", coord, Nselec = 10)
 \item{Nselec}{int: number of neighboor retained, 10 by default, 10 is the max value}
 
 \item{data.frame}{DF: dataset}
+
+\item{numeric}{Inter: Interval for size classes (10 cm by default)}
 }
 \value{
 A TabDis object
