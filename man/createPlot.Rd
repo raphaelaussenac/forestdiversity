@@ -4,7 +4,7 @@
 \alias{createPlot}
 \title{Create a Plot object}
 \usage{
-createPlot(DF, shape = "quadrat", coord)
+createPlot(DF, shape = "quadrat", coord, Inter = 10)
 }
 \arguments{
 \item{shape}{str: shape of the plot (quadrat or circular)}
@@ -12,11 +12,13 @@ createPlot(DF, shape = "quadrat", coord)
 \item{coord}{vect: vector of the coordinates of the plot : (xmin, xmx, ymin, ymax) or (radius)}
 
 \item{data.frame}{DF: dataset}
+
+\item{numeric}{Inter: Interval for size classes (10 cm by default)}
 }
 \value{
 A Plot object
 }
 \description{
 This function takes a data.frame and return a Plot object. The data.frame
-must contain variables: species, D_cm, weight, X, Y
+must contain variables: species, D_cm, X, Y
 }
