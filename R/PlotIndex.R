@@ -59,6 +59,7 @@ createPlot <- function(DF, shape="quadrat", coord, Inter=10){
 #' @param shape str: shape of the plot (quadrat or circular)
 #' @param coord vect: vector of the coordinates of the plot : (xmin, xmx, ymin, ymax) or (radius)
 #' @param Nselec int: number of neighboor retained, 10 by default, 10 is the max value
+#' @param numeric Inter: Interval for size classes (10 cm by default)
 #' @return A TabDis object
 #' @export
 TabDist <- function(DF, shape="quadrat", coord, Nselec = 10, Inter=10){
