@@ -175,8 +175,8 @@ Compute_mingling <- function(TabDis, Nk=4, EdgeCorrection="NN1"){
     TT <- DFDis[, .(species=sp1[1], ClassSize1=ClassSize1[1]), by='V1']
     Ni <- TT[, .(Ni=.N), by='species']
     Em <-  sum(Ni$N * (dim(TT)[1] - Ni$N) / (dim(TT)[1] * (dim(TT)[1]-1)))
-    OUT <- dplyr::mutate(Mk, Em=Em, phi=1-(Mk/Em))
-    OUT <- dplyr::arrange(OUT, k)
+    OUT <- dplyr::mutate(Mk, Em=Em, phi=1-(mk/Em))
+    OUT <- dplyr::filter(OUT, k==Nk)
     return(OUT)
 }
 
@@ -222,7 +222,7 @@ Compute_Size_Diff <- function(TabDis, Nk=4, EdgeCorrection='None'){
     TT <- dplyr::arrange(TT, DBH)
     TT <- cbind(TT, R=c(0, cumsum(TT$DBH)[1:(N-1)]))
     ET <- 1 - 2/(N*(N-1)) * sum(TT$R/TT$DBH)
-    return(cbind(T, ET=ET))
+    return(cbind(T, ET=ET, phi=1-T/ET))
 } 
 
 #' Compute Uniform angle Index
