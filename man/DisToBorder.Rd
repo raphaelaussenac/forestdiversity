@@ -13,5 +13,5 @@ DisToBorder(Plot)
 A Plot object with DisToBorder variable in the DF
 }
 \description{
-This function takes a Plot object and return a TabDis object
+This function takes a Plot object and return a Plot object and add a distance to border
 }
