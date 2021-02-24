@@ -20,4 +20,5 @@ A data.frame of metrics
 }
 \description{
 This function loads a according to the evalSite value.
+It return the diversity metrics for each year * site in a data.frame
 }
