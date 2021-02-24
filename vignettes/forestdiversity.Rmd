@@ -1,0 +1,168 @@
+---
+title: "forestdiversity"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{forestdiversity}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+# Installation of the package
+
+```{r eval=FALSE}
+require(devtools)
+devtools::install_gitlab('arnaud.guyennon/forestdiversity')
+```
+
+```{r setup, include = FALSE}
+require(forestdiversity)
+DF <- PlotExample
+```
+
+# Diversity indices
+Diversity indices can be calculated using whether species or size classes.
+For both cases, the indices computed are 
+
+1. Shannon Index
+2. Gini Simpson Index
+3. Simpson Index
+
+These 3 indices, also called Hill numbers, are computed based on abundances.
+Abundances can be expressed as tree density (i.e. the number of trees in each species/size class) or as the proportion of basal area (the proportion of total basal area within each species/size class).
+For example if we want to compute hill number based on tree density on species, command would be:
+
+```{r, echo = TRUE}
+CalcDivIndex(PlotExample, Nvar = 'species', type = 'Density')
+```
+By default, the function CalcDivIndex compute the diversity indices for each year/site/src within the dataset.
+If no year/site/src is filled within the dataset, they will be set to default values.
+
+To compute diversity indices based on basal area: 
+
+```{r, echo = TRUE}
+CalcDivIndex(PlotExample, Nvar = 'species', type = 'BA')
+```
+
+Both previous calculations can be performed on size rather than on species.
+In that case size must be divided into classes using the parameter Inter (size of each classes in the same unit as the size variable) in CalcDivIndex.
+
+```{r, echo = TRUE}
+CalcDivIndex(PlotExample, Nvar = 'D_cm', Inter=10, type = 'Density')
+```
+```{r, echo = TRUE}
+CalcDivIndex(PlotExample, Nvar = 'D_cm', Inter=10, type = 'BA')
+```
+
+In these cases, the Gini index is also added to the output.
+Here the Gini index is based on basal area.
+
+
+The function used in CalcDivIndex can be used independently.
+
+# Spatial metrics
+
+We have a dataset named DF with at least trees species, DBH, and location in X / Y:
+
+```{r, echo = FALSE}
+print(head(DF))
+```
+We first need to build a TabDist object using the TabDist function:
+
+```{r, echo = TRUE}
+Td <- TabDist(DF, coord=c(0, 80, 0, 80), shape='quadrat', Nselec=10, Inter=10)
+```
+The coord argument gives the dimension of the plot (xmin, xmax, ymin, ymax)
+The shape argument give the shape of the plot ('quadrat' or 'circular'), by default it is 'quadrat'
+The Nselec argument give the number of neighboors we should consider for each tree, by default it is 10 and should be left at this value
+The Inter argument give the class size dimension (in cm) wich will be used to compute size classes
+
+We can plot the TabDis object 
+```{r, echo = TRUE}
+plot(Td)
+```
+
+We see in the figure the trees that will be used in further calculation (i.e. not to close to the border of the plot) and the border of the plot.
+Circles without color will be discarded because they are too close to the border.
+
+Several metrics can then be computed, for each we need to select the number of neighboors that will be used (by default 4) and the type of correction we want to apply to take into account the border effect (by default 'NN1').
+
+## The mingling index
+
+The mingling index (Pommerening et al, 2017) is defined as the "mean heterospecific fraction of plants among the k nearest neighbours of a given plant i."
+For each tree in the plot, we compute the fraction of tree in the neighboorhood that belong to the same species as this tree.
+We then compute the mean of these fractions.
+
+```{r, echo = TRUE}
+Compute_mingling(Td, Nk=4, EdgeCorrection="NN1")
+```
+For Nk number of neighboors (here 4) we get mk the mingling index for k neighboors.
+Em is the expected mingling index in case of independent species, and does not depend on the number of neighboors.
+Phi is simply $1 - \frac{mk}{Em}$ : if phi is 0 then species in the plot are independantly organized, if phi is 1 then species seggregation is maximum, and if phi is -1 then attraction of different species is maximum.
+
+Pommerening et al, 2017 presented their results using 3 neighboors, in IMaestro we use 4 as suggested by Aguirre (2003).
+
+## The Size Differentiation index
+The size differentiation index (Pommerening et al, 2017) is the "mean of the ratio of smaller and larger plant sizes u of the k nearest neighbours subtracted from one."
+For each tree i, we select the k closest neighboors (by default 4) and compute $T_i=\frac{1}{k}\sum_{j=1}^k \frac{min(u_i, u_j)}{max(u_i, u_j)}$
+Here the size u is taken as the DBH.
+Contrary to minglin index, the size differentiation index is computed for only only number of neighboors.
+
+```{r, echo = TRUE}
+Compute_Size_Diff(Td, Nk=4, EdgeCorrection="NN1")
+```
+
+As in the mingling index, we also compute the expected size differentiation, which is independent of the number of neighboors, and phi as $1 - \frac{mk}{Em}$.
+
+
+## The Winkelmass index
+
+Also called the Uniform angle index, "The Winkelmass describes the regularity or irregularity of the spatial distribution of the n trees nearest to a reference tree i" (Hui and Gadow, 2002).
+This index is based on the angle between trees and their neighboor and we refer to the paper Hui and Gadow, 2002 to clear explanations.
+They give an interpretation to the index :
+
+| Winkelmass    | Category      |
+| ------------- |:-------------:|
+| 0             | very regular  |
+| 0.25          |  regular      |
+| 0.5           |  random       |
+| 0.75          |  irregular    |
+| 1             |very irregular |
+
+
+```{r, echo = TRUE}
+Compute_Winkelmass(Td, Nk=4)
+```
+
+## Structural Complexity Index
+
+When height is filled in the dataset (variable 'H_m'), one can compute the structural complexity index (SCI: Zenner & Hibbs 2000).
+SCI is defined as "the sum of the surface areas of the [triangulated irregular network] for a stand divided by the ground area covered by all triangles".
+We strongly recommend the reading of  Zenner & Hibbs (2000) for a better understanding of this index.
+The index ranges from 1 (all trees have the same height) to theoretically infinity, the higher value meaning a higher 3D heterogeneity.
+
+```{r, echo = TRUE}
+StructuralComplexityIndex(PlotExample, coord=c(0,80,0,80))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
