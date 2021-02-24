@@ -1,26 +1,3 @@
-#' Create a dummy virtual plot
-#'
-#' @return A data.frame of a virtual plot
-#' @export
-BuildDummy <- function(){
-    Inter <- 10
-    o <- data.frame(site="Random", year=2000, species=rep(c('piab', 'fasy'), each=1000),
-		    D_cm=runif(2000, 15, 50), H_cm=runif(2000,5, 50), weight=1)
-    DF <- dplyr::mutate(o, X=runif(dim(o)[1],-10,10), Y=runif(dim(o)[1],-10, 10), ClassSize=(1+floor((D_cm-Inter/2)/Inter))*Inter)
-    return(DF)
-}
-
-BuildDummy2 <- function(){
-    Inter <- 10
-    o <- data.frame(site="Random", year=2000, species=rep(c('piab', 'fasy'), each=1000),
-		    D_cm=runif(2000, 15, 50), H_cm=runif(2000,5, 50))
-    NN <- floor(sqrt(dim(o)[1]))
-    o <- o[1:(NN^2),]
-    XY <- expand.grid(seq(-10,10,length.out=NN), seq(-10,10,length.out=NN))
-    DF <- mutate(o, X=XY[,1], Y=XY[,2], ClassSize=(1+floor((D_cm-Inter/2)/Inter))*Inter)
-    return(DF)
-}
-
 #' Create a Plot object
 #'
 #' This function takes a data.frame and return a Plot object. The data.frame
