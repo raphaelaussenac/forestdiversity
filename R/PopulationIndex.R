@@ -44,29 +44,41 @@ CalcDivIndex <- function(dataSet, Nvar = 'D_cm', Inter = 10, type = 'BA'){
     if (!('weight' %in% names(dataSet))){dataSet <- dplyr::mutate(dataSet, weight=1)}
     if (!('src' %in% names(dataSet))){dataSet <- dplyr::mutate(dataSet, src='1')}
     dataSet <- dplyr::mutate(dataSet, BA=pi*(D_cm/200)^2*weight)
+    dataSet <- data.table::as.data.table(dataSet)
     if (type=='BA'){
         if (is.numeric(dataSet$Var)){
-             DivIndex <- dplyr::group_by(dataSet, year, site, src)
-             DivIndex <- dplyr::summarise(DivIndex, Gini=GiniPop(Var, BA, weight), H=HillPop(Class, BA))
-	     DivIndex <- dplyr::ungroup(DivIndex)
-             DivIndex <- cbind(DivIndex[, 1:4], DivIndex$H)
+	     DivIndex <- dataSet[, .(Gini=GiniPop(Var, BA, weight),
+                 H=HillPop(Class, BA, OutFormat='str')), by=list(year, site, src)]
+             DivIndex <- dplyr::mutate(DivIndex, Sh=as.numeric(do.call(rbind, strsplit(H, '/'))[, 1]),
+                        GS=as.numeric(do.call(rbind, strsplit(H, '/'))[,2]),
+                        Simp=as.numeric(do.call(rbind, strsplit(H, '/'))[,3]),
+                        Nclass=as.numeric(do.call(rbind, strsplit(H, '/'))[,4]))
+	     DivIndex <- dplyr::select(DivIndex, -H)
+
 	}else{
-             DivIndex <- dplyr::group_by(dataSet, year, site, src)
-             DivIndex <- dplyr::summarise(DivIndex, H=HillPop(Class, BA))
-	     DivIndex <- dplyr::ungroup(DivIndex)
-             DivIndex <- cbind(DivIndex[, 1:3], DivIndex$H)
+             DivIndex <- dataSet[, .(H=HillPop(Class, BA, OutFormat='str')), by=list(year, site, src)]
+             DivIndex <- dplyr::mutate(DivIndex, Sh=as.numeric(do.call(rbind, strsplit(H, '/'))[, 1]),
+                        GS=as.numeric(do.call(rbind, strsplit(H, '/'))[,2]),
+                        Simp=as.numeric(do.call(rbind, strsplit(H, '/'))[,3]),
+                        Nclass=as.numeric(do.call(rbind, strsplit(H, '/'))[,4]))
+	     DivIndex <- dplyr::select(DivIndex, -H)
 	}
     }else{
         if (is.numeric(dataSet$Var)){
-             DivIndex <- dplyr::group_by(dataSet, year, site, src)
-             DivIndex <- dplyr::summarise(DivIndex, Gini=GiniPop(Var, BA, weight), H=HillPop(Class, weight))
-	     DivIndex <- dplyr::ungroup(DivIndex)
-             DivIndex <- cbind(DivIndex[, 1:4], DivIndex$H)
+	     DivIndex <- dataSet[, .(Gini=GiniPop(Var, BA, weight),
+                 H=HillPop(Class, weight, OutFormat='str')), by=list(year, site, src)]
+             DivIndex <- dplyr::mutate(DivIndex, Sh=as.numeric(do.call(rbind, strsplit(H, '/'))[, 1]),
+                        GS=as.numeric(do.call(rbind, strsplit(H, '/'))[,2]),
+                        Simp=as.numeric(do.call(rbind, strsplit(H, '/'))[,3]),
+                        Nclass=as.numeric(do.call(rbind, strsplit(H, '/'))[,4]))
+	     DivIndex <- dplyr::select(DivIndex, -H)
 	}else{
-             DivIndex <- dplyr::group_by(dataSet, year, site, src)
-             DivIndex <- dplyr::summarise(DivIndex, H=HillPop(Class, weight))
-	     DivIndex <- dplyr::ungroup(DivIndex)
-             DivIndex <- cbind(DivIndex[, 1:3], DivIndex$H)
+             DivIndex <- dataSet[, .(H=HillPop(Class, weight, OutFormat='str')), by=list(year, site, src)]
+             DivIndex <- dplyr::mutate(DivIndex, Sh=as.numeric(do.call(rbind, strsplit(H, '/'))[, 1]),
+                        GS=as.numeric(do.call(rbind, strsplit(H, '/'))[,2]),
+                        Simp=as.numeric(do.call(rbind, strsplit(H, '/'))[,3]),
+                        Nclass=as.numeric(do.call(rbind, strsplit(H, '/'))[,4]))
+	     DivIndex <- dplyr::select(DivIndex, -H)
 	}
     }
     return(DivIndex)
@@ -113,11 +125,19 @@ GiniPop <- function(Size, BA, weight = rep(1, length = length(x))){
 #' @param Weight, numeric vector, weight associated with each tree, can be the basal area
 #' @return The Hill Numbers index for the population
 #' @export
-HillPop <- function (Class, weight){
+HillPop <- function(Class, weight, OutFormat='list'){
     P <- dplyr::group_by(data.frame(Class, weight), Class)
     P <- dplyr::summarise(P, p = sum(weight))
     P <- dplyr::ungroup(P)
     P <- dplyr::mutate(P, p=p/sum(p))
-    return(data.frame(Sh=-sum(P$p*log(P$p)), GS=1-sum(P$p^2), Simp=sum(P$p^2), Nclass=dim(P)[1]))
+    Out <- data.frame(Sh=-sum(P$p*log(P$p)), GS=1-sum(P$p^2), Simp=sum(P$p^2), Nclass=dim(P)[1])
+    if (OutFormat=='list'){
+        return(Out)
+    }else if (OutFormat=='str'){
+        Out <- paste(Out$Sh, Out$GS, Out$Simp, Out$Nclass, sep='/') 
+        return(Out)
+    }else{
+	    stop('Outformat must be list or str')
+    }
 }
 
