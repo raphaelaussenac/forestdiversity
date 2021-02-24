@@ -148,31 +148,31 @@ Compute_mingling <- function(TabDis, Nk=4, EdgeCorrection="NN1"){
     DFDis <- dplyr::filter(DFDis, InCoord==TRUE)
     DFDis <- data.table::as.data.table(DFDis)
     if (TabDis$shape=='circular'){
-        Mg <- DFDis[, {list(k=sum(I1[1:Nk]), Mi=sum(I1[1:Nk])/Nk, AllIn=(Dis[Nk]<=DisToBord[Nk])>0,
-		     Fi=(TabDis$coord-Dis[Nk])^2*pi)}, by='V1']
+        Mg <- DFDis[, .(k=sum(I1[1:Nk]), Mi=sum(I1[1:Nk])/Nk, AllIn=(Dis[Nk]<=DisToBord[Nk])>0,
+		     Fi=(TabDis$coord-Dis[Nk])^2*pi), by='V1']
     }else if (TabDis$shape=='quadrat'){
-        Mg <- DFDis[, {list(Mi=sum(I1[1:Nk])/Nk, k=sum(I1[1:Nk]), AllIn=(Dis[Nk]<=DisToBord[Nk])>0,
-           Fi=(abs(diff(TabDis$coord[c(1,2)]))-Dis[Nk])*(abs(diff(TabDis$coord[c(3,4)]))-Dis[Nk]))}, by='V1']
+        Mg <- DFDis[, .(Mi=sum(I1[1:Nk])/Nk, k=sum(I1[1:Nk]), AllIn=(Dis[Nk]<=DisToBord[Nk])>0,
+           Fi=(abs(diff(TabDis$coord[c(1,2)]))-Dis[Nk])*(abs(diff(TabDis$coord[c(3,4)]))-Dis[Nk])), by='V1']
     }
     switch(EdgeCorrection,
         NN1={Lhat <- sum(Mg$AllIn/Mg$Fi)
-	    Mk <- Mg[, {list(mk=(1/Lhat) * sum(AllIn/Fi))}, by='k']
+	    Mk <- Mg[, .(mk=(1/Lhat) * sum(AllIn/Fi)), by='k']
 	    Mk <- dplyr::mutate(Mk, M=sum(Mg$Mi*Mg$AllIn/Mg$Fi) / Lhat)
         },
         NN2={Ni <- sum(Mg$AllIn)
-	    Mk <- Mg[, {list(mk=sum(AllIn)/Ni)}, by='k'] 
+	    Mk <- Mg[, .(mk=sum(AllIn)/Ni), by='k'] 
 	    Mk <- dplyr::mutate(Mk, M=sum(Mg$Mi*Mg$AllIn)/sum(Mg$AllIn))
         },
 	Exclude={Mg <- dplyr::filter(Mg, AllIn==TRUE) 
-	    Mk <- Mg[, {list(mk=.N/dim(Mg)[1])}, by='k'] 
+	    Mk <- Mg[, .(mk=.N/dim(Mg)[1]), by='k'] 
 	    Mk <- dplyr::mutate(Mk, M=sum(Mg$Mi) / dim(Mg)[1])
 	},
-	None={Mk <- Mg[, {list(mk=.N/dim(Mg)[1])}, by='k']
+	None={Mk <- Mg[, .(mk=.N/dim(Mg)[1]), by='k']
 	    Mk <- dplyr::mutate(Mk, M=sum(Mg$Mi) / dim(Mg)[1])
 	},
         stop("Need a valid edge correction (NN1, NN2, Exclude, None)")
     )
-    TT <- DFDis[, {list(species=sp1[1], ClassSize1=ClassSize1[1])}, by='V1']
+    TT <- DFDis[, .(species=sp1[1], ClassSize1=ClassSize1[1]), by='V1']
     Ni <- TT[, .(Ni=.N), by='species']
     Em <-  sum(Ni$N * (dim(TT)[1] - Ni$N) / (dim(TT)[1] * (dim(TT)[1]-1)))
     return(dplyr::mutate(Mk,Em=Em))
