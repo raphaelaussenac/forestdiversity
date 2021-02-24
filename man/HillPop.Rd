@@ -4,7 +4,7 @@
 \alias{HillPop}
 \title{Compute Hill Nb}
 \usage{
-HillPop(Class, weight)
+HillPop(Class, weight, OutFormat = "list")
 }
 \arguments{
 \item{Class}{numeric vector, class of each treee in the population (in cm)}
