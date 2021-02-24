@@ -6,6 +6,47 @@ require(raster)
 require(rgeos)
 require(tidyr)
 
+#' Retrieve Landscape dataset
+#'
+#' This function gather landscape data into on data.table 
+#' @return DF, data.table
+#' @export
+getdataBaugesInit <- function(){
+  LandscapeRaw <- read.asciigrid('DATA/Bauges_Landscape/cellID.asc')
+  if (exists('DATA/Bauges_Landscape/trees75.Rds')){
+    DF <- readRDS('DATA/Bauges_Landscape/trees75.Rds')
+  }else{
+    DF <- read.csv('DATA/Bauges_Landscape/trees75.csv')
+    DF <- data.table::as.data.table(DF)
+  }
+  DF <- DF[(!is.na(dbh))]
+  DF <- dplyr::mutate(DF, Area=25*25*1e-4)
+  Landscape <- data.table::as.data.table(coordinates(LandscapeRaw))
+  Landscape <- dplyr::mutate(Landscape, cellID=LandscapeRaw@data[[1]])
+  Landscape <- Landscape[(cellID %in% DFstand$cellID)]
+  names(Landscape)[(1:2)] <- c('XCenter', 'YCenter')
+  DF <- merge(DF, Landscape, by='cellID')
+  return(DF)
+}
+
+#' Compute class Landscape
+#'
+#' This function takes a data.table of landscape and return in a class form 
+#' @param DF, data.table, the landscape with dbh for each tree
+#' @return DFclass, data.table, the equivalent of DF in class form
+#' @export
+LandscapeDBHtoClass <- function(DF){
+  IntClassDBH <- seq(5, 255, by=10)
+  DF <- dplyr::mutate(DF, Cat=findInterval(dbh, IntClassDBH), Area=25*25*1e-4)
+  DFstand <- DF[, .(NHA=sum(n/Area), BA=sum((n*pi*(dbh/200)^2)/Area),
+      Dg=sqrt(sum(n*dbh^2)/sum(n)), Area=mean(Area), XCenter=XCenter[1], YCenter=YCenter[1]), by="cellID"]
+  DFclass <- DF[, .(n=sum(n)), by=list(cellID, Cat)]
+  DFclass <- pivot_wider(DFclass, values_from=n, names_from=Cat,
+         names_prefix='Nclass_', values_fill=list(n=0))
+  DFclass <- merge(DFstand, DFclass, by='cellID')
+  return(DFclass)
+}
+
 #' Compute Shannon Index
 #'
 #' This function compute the Shannon index for a gridded landscape 
@@ -61,10 +102,9 @@ Quad <- function(DF, Res=1, N=9){
     dgrid <- dgrid[N, ]
     xgrid <- seq((xrange[1]-dgrid$dx), (xrange[2]+Res/2), by=Res)
     ygrid <- seq((yrange[1]-dgrid$dy), (yrange[2]+Res/2), by=Res)
-    DF <- mutate(DF, xind=findInterval(XCenter * 1e-3, xgrid),
+    DF <- dplyr::mutate(DF, xind=findInterval(XCenter * 1e-3, xgrid),
             yind=findInterval(YCenter * 1e-3, ygrid),
 	    Iind=paste(xind, yind, sep='/'))
-    DF <- as.data.table(DF)
     pArea <- DF[, pArea:=Area/sum(Area), by=list(xind,yind)][, pArea]
     iClass  <- which(substr(names(DF),1,7)=='Nclass_')
     DFClass <- DF[, ..iClass]
@@ -73,7 +113,7 @@ Quad <- function(DF, Res=1, N=9){
     DF2 <- DFClass[, lapply(.SD, sum, na.rm=TRUE), by=Iind] 
     DF3 <- DF[,list(
 	    Dg=sum(Dg*Area*NHA, na.rm=TRUE)/sum(Area*NHA, na.rm=TRUE),
-	    G=sum(G*Area, na.rm=TRUE)/sum(Area, na.rm=TRUE),
+	    BA=sum(BA*Area, na.rm=TRUE)/sum(Area, na.rm=TRUE),
 	    Area=sum(Area, na.rm=TRUE),
 	    XCenter=mean(XCenter), YCenter=mean(YCenter),
 	    xgrid=xgrid[mean(xind)]+Res/2, ygrid=ygrid[mean(yind)]+Res/2), by=Iind]
