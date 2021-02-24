@@ -175,7 +175,9 @@ Compute_mingling <- function(TabDis, Nk=4, EdgeCorrection="NN1"){
     TT <- DFDis[, .(species=sp1[1], ClassSize1=ClassSize1[1]), by='V1']
     Ni <- TT[, .(Ni=.N), by='species']
     Em <-  sum(Ni$N * (dim(TT)[1] - Ni$N) / (dim(TT)[1] * (dim(TT)[1]-1)))
-    return(dplyr::mutate(Mk,Em=Em))
+    OUT <- dplyr::mutate(Mk,Em=Em)
+    OUT <- dplyr::arrange(OUT, k)
+    return(OUT)
 }
 
 #' Compute Size differentiation in a plot
