@@ -80,7 +80,7 @@ CalcDivIndex <- function(dataSet, Nvar = 'D_cm', Inter = 10, type = 'BA'){
 #' @param Weight, numeric vector, weight associated with each tree
 #' @return The Gini index for the population
 #' @export
-GiniPop <- function (Size, BA, weight = rep(1, length = length(x))){
+GiniPop <- function(Size, BA, weight = rep(1, length = length(x))){
 	# We handle cases where several trees have same size
     DF <- dplyr::group_by(data.frame(S=Size, B=BA, W=weight), S)
     DF <- dplyr::summarise(DF, B=sum(B), W=sum(W))
