@@ -157,25 +157,25 @@ Compute_mingling <- function(TabDis, Nk=4, EdgeCorrection="NN1"){
     switch(EdgeCorrection,
         NN1={Lhat <- sum(Mg$AllIn/Mg$Fi)
 	    Mk <- Mg[, .(mk=(1/Lhat) * sum(AllIn/Fi)), by='k']
-	    Mk <- dplyr::mutate(Mk, M=sum(Mg$Mi*Mg$AllIn/Mg$Fi) / Lhat)
+#	    Mk <- dplyr::mutate(Mk, M=sum(Mg$Mi*Mg$AllIn/Mg$Fi) / Lhat)
         },
         NN2={Ni <- sum(Mg$AllIn)
 	    Mk <- Mg[, .(mk=sum(AllIn)/Ni), by='k'] 
-	    Mk <- dplyr::mutate(Mk, M=sum(Mg$Mi*Mg$AllIn)/sum(Mg$AllIn))
+#	    Mk <- dplyr::mutate(Mk, M=sum(Mg$Mi*Mg$AllIn)/sum(Mg$AllIn))
         },
 	Exclude={Mg <- dplyr::filter(Mg, AllIn==TRUE) 
 	    Mk <- Mg[, .(mk=.N/dim(Mg)[1]), by='k'] 
-	    Mk <- dplyr::mutate(Mk, M=sum(Mg$Mi) / dim(Mg)[1])
+#	    Mk <- dplyr::mutate(Mk, M=sum(Mg$Mi) / dim(Mg)[1])
 	},
 	None={Mk <- Mg[, .(mk=.N/dim(Mg)[1]), by='k']
-	    Mk <- dplyr::mutate(Mk, M=sum(Mg$Mi) / dim(Mg)[1])
+#	    Mk <- dplyr::mutate(Mk, M=sum(Mg$Mi) / dim(Mg)[1])
 	},
         stop("Need a valid edge correction (NN1, NN2, Exclude, None)")
     )
     TT <- DFDis[, .(species=sp1[1], ClassSize1=ClassSize1[1]), by='V1']
     Ni <- TT[, .(Ni=.N), by='species']
     Em <-  sum(Ni$N * (dim(TT)[1] - Ni$N) / (dim(TT)[1] * (dim(TT)[1]-1)))
-    OUT <- dplyr::mutate(Mk,Em=Em)
+    OUT <- dplyr::mutate(Mk, Em=Em, phi=1-(Mk/Em))
     OUT <- dplyr::arrange(OUT, k)
     return(OUT)
 }
