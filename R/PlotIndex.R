@@ -148,31 +148,31 @@ Compute_mingling <- function(TabDis, Nk=4, EdgeCorrection="NN1"){
     DFDis <- dplyr::filter(DFDis, InCoord==TRUE)
     DFDis <- data.table::as.data.table(DFDis)
     if (TabDis$shape=='circular'){
-        Mg <- DFDis[, .(k=sum(I1[1:Nk]), Mi=sum(I1[1:Nk])/Nk, AllIn=(Dis[Nk]<=DisToBord[Nk])>0,
-		     Fi=(TabDis$coord-Dis[Nk])^2*pi), by='V1']
+        Mg <- DFDis[, {list(k=sum(I1[1:Nk]), Mi=sum(I1[1:Nk])/Nk, AllIn=(Dis[Nk]<=DisToBord[Nk])>0,
+		     Fi=(TabDis$coord-Dis[Nk])^2*pi)}, by='V1']
     }else if (TabDis$shape=='quadrat'){
-        Mg <- DFDis[, .(Mi=sum(I1[1:Nk])/Nk, k=sum(I1[1:Nk]), AllIn=(Dis[Nk]<=DisToBord[Nk])>0,
-           Fi=(abs(diff(TabDis$coord[c(1,2)]))-Dis[Nk])*(abs(diff(TabDis$coord[c(3,4)]))-Dis[Nk])), by='V1']
+        Mg <- DFDis[, {list(Mi=sum(I1[1:Nk])/Nk, k=sum(I1[1:Nk]), AllIn=(Dis[Nk]<=DisToBord[Nk])>0,
+           Fi=(abs(diff(TabDis$coord[c(1,2)]))-Dis[Nk])*(abs(diff(TabDis$coord[c(3,4)]))-Dis[Nk]))}, by='V1']
     }
     switch(EdgeCorrection,
         NN1={Lhat <- sum(Mg$AllIn/Mg$Fi)
-	    Mk <- Mg[, .(mk=(1/Lhat) * sum(AllIn/Fi)), by='k']
+	    Mk <- Mg[, {list(mk=(1/Lhat) * sum(AllIn/Fi))}, by='k']
 	    Mk <- dplyr::mutate(Mk, M=sum(Mg$Mi*Mg$AllIn/Mg$Fi) / Lhat)
         },
         NN2={Ni <- sum(Mg$AllIn)
-	    Mk <- Mg[, .(mk=sum(AllIn)/Ni), by='k'] 
+	    Mk <- Mg[, {list(mk=sum(AllIn)/Ni)}, by='k'] 
 	    Mk <- dplyr::mutate(Mk, M=sum(Mg$Mi*Mg$AllIn)/sum(Mg$AllIn))
         },
 	Exclude={Mg <- dplyr::filter(Mg, AllIn==TRUE) 
-	    Mk <- Mg[, .(mk=.N/dim(Mg)[1]), by='k'] 
+	    Mk <- Mg[, {list(mk=.N/dim(Mg)[1])}, by='k'] 
 	    Mk <- dplyr::mutate(Mk, M=sum(Mg$Mi) / dim(Mg)[1])
 	},
-	None={Mk <- Mg[, .(mk=.N/dim(Mg)[1]), by='k']
+	None={Mk <- Mg[, {list(mk=.N/dim(Mg)[1])}, by='k']
 	    Mk <- dplyr::mutate(Mk, M=sum(Mg$Mi) / dim(Mg)[1])
 	},
         stop("Need a valid edge correction (NN1, NN2, Exclude, None)")
     )
-    TT <- DFDis[, .(species=sp1[1], ClassSize1=ClassSize1[1]), by='V1']
+    TT <- DFDis[, {list(species=sp1[1], ClassSize1=ClassSize1[1])}, by='V1']
     Ni <- TT[, .(Ni=.N), by='species']
     Em <-  sum(Ni$N * (dim(TT)[1] - Ni$N) / (dim(TT)[1] * (dim(TT)[1]-1)))
     return(dplyr::mutate(Mk,Em=Em))
@@ -247,10 +247,11 @@ Compute_Winkelmass <- function(TabDis, Nk=4){
            D2 <- cbind(X2[iN[2,]], Y2[iN[2,]]) - cbind(X1[iN[2,]], Y1[iN[2,]])
 	   Ags <- (atan2(D2[,2], D2[,1]) - atan2(D1[,2], D1[,1])) * 180 / pi
 	   Ags[Ags<0] <- 360 + Ags[Ags<0]
-	   T <- as.data.frame(t(iN)) %>% dplyr::mutate(Ang=Ags)
-	   p1 <- dplyr::filter(T, V1==1) %>% dplyr::filter(Ang==min(Ang))
-	   p2 <- dplyr::filter(T, V1==p1$V2) %>%  dplyr::filter(Ang==min(Ang))
-	   p3 <- dplyr::filter(T, V1==p2$V2) %>%  dplyr::filter(Ang==min(Ang))
+	   T <- as.data.frame(t(iN))
+	   T <- dplyr::mutate(T, Ang=Ags)
+	   p1 <- dplyr::filter(T, V1==1, Ang==min(Ang))
+	   p2 <- dplyr::filter(T, V1==p1$V2, Ang==min(Ang))
+	   p3 <- dplyr::filter(T, V1==p2$V2, Ang==min(Ang))
 	   p4 <- dplyr::filter(T, V1==p3$V2, V2==1)
 	   listAng <- c(p1$Ang, p2$Ang, p3$Ang, p4$Ang)
 	   if (round(sum(listAng))!=360){stop(paste0('Trouble with angle
@@ -270,7 +271,8 @@ Compute_Winkelmass <- function(TabDis, Nk=4){
            D2 <- cbind(X2[iN[2,]], Y2[iN[2,]]) - cbind(X1[iN[2,]], Y1[iN[2,]])
 	   Ags <- (atan2(D2[,2], D2[,1]) - atan2(D1[,2], D1[,1])) * 180 / pi
 	   Ags[Ags<0] <- 360 + Ags[Ags<0]
-	   T <- as.data.frame(t(iN)) %>% dplyr::mutate(Ang=Ags, I=10*V1 + V2)
+	   T <- as.data.frame(t(iN))
+	   T <- dplyr::mutate(T, Ang=Ags, I=10*V1 + V2)
 	   Tabnew <- Tab
            Tabnew[] <- T$Ang[match(unlist(Tab), T$I)]
 	   In <- which(round(apply(Tabnew,1, sum))==360)
