@@ -64,7 +64,7 @@ CalcDivIndex <- function(dataSet, Nvar = 'D_cm', Inter = 10, type = 'BA'){
              DivIndex <- cbind(DivIndex[, 1:4], DivIndex$H)
 	}else{
              DivIndex <- dplyr::group_by(dataSet, year, site, src)
-             DivIndex <- dplyr::summarise(DivIndex, H=HillPop(Class, BA))
+             DivIndex <- dplyr::summarise(DivIndex, H=HillPop(Class, weight))
 	     DivIndex <- dplyr::ungroup(DivIndex)
              DivIndex <- cbind(DivIndex[, 1:3], DivIndex$H)
 	}
