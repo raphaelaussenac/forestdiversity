@@ -1,7 +1,7 @@
 #' Return Diversity metrics
 #'
 #' This function loads a according to the evalSite value.
-# It return the diversity metrics for each year * site in a data.frame
+#' It return the diversity metrics for each year * site in a data.frame
 #' @param dataSet data.frame
 #' @param Nvar string, name of the diversity axis (D_cm for size, species for species)
 #' @param Inter int, width of each size class category
