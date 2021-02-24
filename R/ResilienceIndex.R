@@ -6,9 +6,10 @@
 #' @param Nvar string, name of the variable studied
 #' @return A data.frame containing resilience metrics for each simulation
 #' @export
-EventResilience <- function(dataSet, Nvar='V_m3'){
+EventResilience <- function(dataSet, Nvar='V_m3', RecTime=20){
     dataSet <- data.table(as.data.table(dataSet))
-    TT <- dataSet[,.(RecMet=tryCatch(RecoveryMetrics(V_m3, year, PreDisturb, FormatOut='str'), error=function(e){return('-1/-1/-1')})), by='simulation']
+    TT <- dataSet[,.(RecMet=tryCatch(RecoveryMetrics(V_m3, year, PreDisturb, RecTime=RecTime, FormatOut='str'),
+				     error=function(e){return('-1/-1/-1')})), by='site']
     TT <- dplyr::mutate(TT, Theta=as.numeric(do.call(rbind, strsplit(RecMet, '/'))[, 1]),
 			TimeRec=as.numeric(do.call(rbind, strsplit(RecMet, '/'))[,2]),
 			DegRec=as.numeric(do.call(rbind, strsplit(RecMet, '/'))[,3]))
@@ -56,7 +57,7 @@ RecoveryMetrics <- function(Var, Year, PreDisturb, RecTime=20, FormatOut='list')
 format_Samsara_Tree <- function(dataRaw){
     dataSet <- dplyr::select(dataRaw, -Int.Energy..MJ.year.1., -Pot.Energy..MJ.year.1.,
 	-quality, -marketValue..euros., -dendroHabitats, -ecologicalScore, -treeId, -speciesCode)
-    names(dataSet) <- c('simulation', 'year', 'eventName', 'species', 'X', 'Y', 'D_cm', 'H_m', 'V_m3')
+    names(dataSet) <- c('site', 'year', 'eventName', 'species', 'X', 'Y', 'D_cm', 'H_m', 'V_m3')
 }
 
 #' Format Samsara dataset2
@@ -69,7 +70,7 @@ format_Samsara_Pop <- function(dataRaw){
         N_ha, G_ha, V_ha, Dg, Dm, Carbon_AG_ha, Carbon_BG_ha, L4Cover,
 	NSaplings_ha, NRecruits_ha_yr, NDead_ha_yr, cut_N_ha, cut_V_ha, deadCut_N_ha, deadCut_V_ha) %>%
         dplyr::filter(speciesName=='AllSpecies')
-    names(dataSet) <- c('simulation', 'Event', 'year', 'species', 
+    names(dataSet) <- c('site', 'Event', 'year', 'species', 
         'N', 'G', 'V_m3', 'Dg', 'Dm', 'Carbon_AG_ha', 'Carbon_BG_ha',
 	'L4cover', 'NSaplings_ha', 'NRecruits_ha_yr' , 'NDead_ha_yr',
        	'cut_N_ha', 'cut_V_ha', 'deadCut_N_ha', 'deadCut_V_ha')
@@ -89,6 +90,5 @@ format_Salem <- function(dataRaw){
     dataRaw <- data.table::as.data.table(dataRaw)
     dataSet <- dataRaw[, .(V_m3=sum(weight*V_m3), Dg=sqrt(sum(weight*D_cm^2)/sum(weight))), by=list(site,year)]
     dataSet <- dataSet[, PreDisturb:=(year==min(year)), by='site']
-    names(dataSet)[names(dataSet)=="site"] <- 'simulation'
     return(dataSet)
 }
