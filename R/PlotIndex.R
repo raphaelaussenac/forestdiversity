@@ -259,9 +259,9 @@ Compute_Winkelmass <- function(TabDis, Nk=4){
 	   listAng <- Tabnew[In,]
 	   listAng <- round(listAng, digits=1)
 	   listAng[listAng>180] <- 360 -  listAng[listAng>180]
-	   return(sum(listAng<=(360 / Nk)))
+	   return(sum(listAng<(360 / Nk)))
      }
-     TabWink <- DF[, .(Wink=listAngles(X1, Y1, X2, Y2,iN=iN, Nk=Nk, V1, AllIn, Tab=Tab)/Nk, AllIn=AllIn[1]), by='V1']
+     TabWink <- DF[, .(Wink=listAngles(X1, Y1, X2, Y2, iN=iN, Nk=Nk, V1, AllIn, Tab=Tab)/Nk, AllIn=AllIn[1]), by='V1']
      TabWink <- dplyr::filter(TabWink, AllIn==TRUE)
      return(mean(TabWink$Wink))
 }
