@@ -71,10 +71,9 @@ TabDist <- function(DF, shape="quadrat", coord, Nselec = 10, Inter=10){
 #' @export
 
 plot.DistanceTab <- function(Tdis, Nk=4){
-    Plot <- dplyr::group_by(Tdis$DF, V1)
-    Plot <- dplyr::summarise(Plot, species=sp1[1], DBH1=DBH1[1], ClassSize=ClassSize1[1],
- 	  X=X1[1], Y=Y1[1], AllIn=(Dis[Nk]<=DisToBord[Nk]), InCoord=InCoord[1])
-    Plot <- dplyr::ungroup(Plot)
+    Plot <- Tdis$DF
+    Plot <- Plot[, .(species=sp1[1], DBH1=DBH1[1], ClassSize=ClassSize1[1],
+        X=X1[1], Y=Y1[1], AllIn=(Dis[Nk]<=DisToBord[Nk]), InCoord=InCoord[1]), by='V1']
     Plot$AllIn[Plot$InCoord==FALSE] <- FALSE
 
   if (Tdis$shape=='quadrat'){
@@ -121,6 +120,7 @@ DisToBorder <- function(Plot){
 #' @export
 Compute_mingling <- function(TabDis, Nk=4, EdgeCorrection="NN1"){
 	if (Nk<=0|Nk>10){stop('Number of k neighbours Nk must lie between 1 and 10')}
+	if (!('DistanceTab' %in% class(TabDis))){stop('Argument must a DistanceTab object from TabDist function')}
     DFDis <- dplyr::mutate(TabDis$DF, I1=sp1!=sp2)
     DFDis <- dplyr::filter(DFDis, InCoord==TRUE)
     DFDis <- data.table::as.data.table(DFDis)
@@ -166,6 +166,7 @@ Compute_mingling <- function(TabDis, Nk=4, EdgeCorrection="NN1"){
 #' @export
 Compute_Size_Diff <- function(TabDis, Nk=4, EdgeCorrection='None'){
 	if (Nk<=0|Nk>10){stop('Number of k neighbours Nk must lie between 1 and 10')}
+	if (!('DistanceTab' %in% class(TabDis))){stop('Argument must a DistanceTab object from TabDist function')}
       N <- length(unique(TabDis$DF$V1))
       DFDis <- dplyr::mutate(TabDis$DF, I=rep(1:10, N))
       DFDis <- dplyr::filter(DFDis, InCoord==TRUE, I<=Nk)
@@ -211,6 +212,7 @@ Compute_Size_Diff <- function(TabDis, Nk=4, EdgeCorrection='None'){
 #' @export
 Compute_Winkelmass <- function(TabDis, Nk=4){
 	if (Nk<=0|Nk>10){stop('Number of k neighbours Nk must lie between 1 and 10')}
+	if (!('DistanceTab' %in% class(TabDis))){stop('Argument must a DistanceTab object from TabDist function')}
     DF <- data.table::as.data.table(TabDis$DF)
     DF <- DF[, N:=1:10, by="V1"]
     DF <- DF[, AllIn:=(Dis[Nk]<=DisToBord), by='V1']
