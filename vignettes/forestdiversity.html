@@ -365,8 +365,8 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <h2>The mingling index</h2>
 <p>The mingling index (Pommerening et al, 2017) is defined as the “mean heterospecific fraction of plants among the k nearest neighbours of a given plant i.” For each tree in the plot, we compute the fraction of tree in the neighboorhood that belong to the same species as this tree. We then compute the mean of these fractions.</p>
 <div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" data-line-number="1"><span class="kw">Compute_mingling</span>(Td, <span class="dt">Nk=</span><span class="dv">4</span>, <span class="dt">EdgeCorrection=</span><span class="st">&quot;NN1&quot;</span>)</a></code></pre></div>
-<pre><code>##    k        mk        Em       phi
-## 1: 4 0.3217444 0.7195241 0.5528373</code></pre>
+<pre><code>##           M        Em         phi
+## 1 0.7453394 0.7195241 -0.03587823</code></pre>
 <p>For Nk number of neighboors (here 4) we get mk the mingling index for k neighboors. Em is the expected mingling index in case of independent species, and does not depend on the number of neighboors. Phi is simply <span class="math inline">\(1 - \frac{mk}{Em}\)</span> : if phi is 0 then species in the plot are independantly organized, if phi is 1 then species seggregation is maximum, and if phi is -1 then attraction of different species is maximum.</p>
 <p>Pommerening et al, 2017 presented their results using 3 neighboors, in IMaestro we use 4 as suggested by Aguirre (2003).</p>
 </div>
