@@ -69,7 +69,6 @@ TabDist <- function(DF, shape="quadrat", coord, Nselec = 10, Inter=10){
 #' @param TabDis object, discribing ONE plot (one year, one site, one source,...)
 #' @param Nk int: number of neighboor to exclude/include border plots 
 #' @export
-
 plot.DistanceTab <- function(Tdis, Nk=4){
     Plot <- Tdis$DF
     Plot <- Plot[, .(species=sp1[1], DBH1=DBH1[1], ClassSize=ClassSize1[1],
