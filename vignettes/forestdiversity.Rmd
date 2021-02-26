@@ -1,12 +1,12 @@
 ---
 title: "forestdiversity"
 output: rmarkdown::html_vignette
-fig_width: 12 
-fig_height: 14 
 vignette: >
   %\VignetteIndexEntry{forestdiversity}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+fig_width: 12 
+fig_height: 14 
 ---
 
 
@@ -82,7 +82,7 @@ The Inter argument give the class size dimension (in cm) wich will be used to co
 
 We can plot the TabDis object 
 ```{r, echo = TRUE}
-plot(Td)
+plot.DistanceTab(Td)
 ```
 
 We see in the figure the trees that will be used in further calculation (i.e. not to close to the border of the plot) and the border of the plot.
