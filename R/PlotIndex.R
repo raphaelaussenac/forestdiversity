@@ -58,7 +58,7 @@ TabDist <- function(DF, shape="quadrat", coord, Nselec = 10, Inter=10){
         X2=DF$X[Tdis$V2], Y2=DF$Y[Tdis$V2], sp2=DF$species[Tdis$V2], InCoord=DF$InCoord[Tdis$V1],
         DBH1=DF$D_cm[Tdis$V1], DBH2=DF$D_cm[Tdis$V2], ClassSize1=DF$ClassSize[Tdis$V2],
        	ClassSize2=DF$ClassSize[Tdis$V2], DisToBord=DF$DisToBord[Tdis$V1])
-    Tdis <- list(DF=Tdis, shape=Plot$shape, coord=Plot$coord, Nselec=10)
+    Tdis <- list(DF=Tdis, shape=Plot$shape, coord=Plot$coord, Nselec=Nselec)
     class(Tdis) <- append('DistanceTab', class(Tdis))
     return(Tdis)
 }
