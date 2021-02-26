@@ -4,7 +4,7 @@
 \alias{plot.DistanceTab}
 \title{Plot a TabDis object}
 \usage{
-plot.DistanceTab(Tdis, Nk = 4)
+\method{plot}{DistanceTab}(Tdis, Nk = 4)
 }
 \arguments{
 \item{Nk}{int: number of neighboor to exclude/include border plots}
