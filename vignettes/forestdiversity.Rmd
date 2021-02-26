@@ -99,9 +99,9 @@ We then compute the mean of these fractions.
 ```{r, echo = TRUE}
 Compute_mingling(Td, Nk=4, EdgeCorrection="NN1")
 ```
-For Nk number of neighboors (here 4) we get mk the mingling index for k neighboors.
+For Nk number of neighboors (here 4) we get M the mingling index for k neighboors.
 Em is the expected mingling index in case of independent species, and does not depend on the number of neighboors.
-Phi is simply $1 - \frac{mk}{Em}$ : if phi is 0 then species in the plot are independantly organized, if phi is 1 then species seggregation is maximum, and if phi is -1 then attraction of different species is maximum.
+Phi is simply $1 - \frac{M}{Em}$ : if phi is 0 then species in the plot are independantly organized, if phi is 1 then species seggregation is maximum, and if phi is -1 then attraction of different species is maximum.
 
 Pommerening et al, 2017 presented their results using 3 neighboors, in IMaestro we use 4 as suggested by Aguirre (2003).
 
