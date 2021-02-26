@@ -3,19 +3,20 @@ Package to compute forest diversity index in IMaestro project
 # Package installation
 
 Need the library devtools in R then in R.
+
 devtools::install_gitlab('arnaud.guyennon/forestdiversity', build_vignettes=TRUE)
 
 # Details on the package
 
 ## Vignette
 
-A vignette with example (the variable PlotExample) can be consulted using vignette('forestdiversity')
+/bin/bash: w:w : commande introuvable
 
 ## Population indices
 
-DBH-Distribution related :
+Size-Distribution related :
 
-1. Nb of DBH class 
+1. Nb of Size class 
 2. Hill Numbers (Shannon, Simpson)
 3. Gini index 
 
@@ -24,13 +25,13 @@ Species-related
 1. Nb of species
 2. Hill Numbers (Shannon, Simpson)
 
-Metrics are calculated for each year, each site and each data source
+Indices can be computed using whether density or basal as proportion. 
 
 ## Plot (=stand with location) indices
 
-DBH-Distribution related
+Size-Distribution related
 
-1. DBH Size Differentiation index
+1. Size Differentiation index
 
 Species-related
 
