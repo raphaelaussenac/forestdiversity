@@ -1,49 +1,55 @@
 Package to compute forest diversity index in IMaestro project
 
-Outputs of model/data must be matrix with a line for each year/species/DBH.
+# Package installation
 
-Variables recorded must be at least year, species, DBH and a weight.
-Install the package
+Need the library devtools in R then in R.
+devtools::install_gitlab('arnaud.guyennon/forestdiversity', build_vignettes=TRUE)
 
-Need the library devtools in R Then in R : devtools::install_gitlab('arnaud.guyennon/forestdiversity')
-Population (=stand) level metrics :
+# Details on the package
 
-DBH-Distribution related : Nb of DBH class Hill Numbers (Shannon, Simpson) based on DBH Class Gini index (species only) Skewness of DBH distribution Gini of DBH distribution
+## Vignette
 
-Species-related : Nb of species Hill Numbers (Shannon, Simpson) based on species
+A vignette with example (the variable PlotExample) can be consulted using vignette('forestdiversity')
+
+## Population indices
+
+DBH-Distribution related :
+
+1. Nb of DBH class 
+2. Hill Numbers (Shannon, Simpson)
+3. Gini index 
+
+Species-related
+
+1. Nb of species
+2. Hill Numbers (Shannon, Simpson)
 
 Metrics are calculated for each year, each site and each data source
-Plot level metrics: spatial metrics can be computed if each tree location are known
 
-DBH-Distribution related : DBH segregation index Uniform angle index Structural Complexity index
+## Plot (=stand with location) indices
 
-Species-related : Species mingling index
-How to compute spatial diversity metrics
+DBH-Distribution related
 
-Need first to compute a TabDist object using create_TabDist function using the data (data.frame), the shape of the plot and its coordinates Metrics can then be computed using the TabDist object
+1. DBH Size Differentiation index
 
-Refs for the metrics and correction :
+Species-related
+
+1. Species mingling index
+
+Spatial distribution:
+
+1. Uniform angle Index (=Winkelmass)
+
+
+## Resilience metrics
+
+## Landscape metrics
+
+## References
 
 Pommerening and UriaDiez, 2017 : Do large forest trees tend towards high species mingling ?
 Hui and Gadow, 2002 : Characterizing forest spatial structure and diversity
 Zenner and Hibbs, 2000 : A new method for modeling the heterogeneity of forest structure
 Pommerening and Stoyan, 2006 : Edge-correction needs in estimation indices of spatial forest structure
 
-Landscape level metrics
-Resilience metrics
 
-One event case
-
-Resistance
-Recovery rate
-Recovery time
-Degree of recovery at time tx=20
-Efficiency at time tx
-
-Regime of disturbances
-
-Temporal instability
-Temporal autocorrelation
-Non-permanent time
-Non-permanent intensity
-Net change
