@@ -75,10 +75,9 @@ plot.DistanceTab <- function(Tdis, Nk=4){
     Plot <- Plot[, .(species=sp1[1], DBH1=DBH1[1], ClassSize=ClassSize1[1],
         X=X1[1], Y=Y1[1], AllIn=(Dis[Nk]<=DisToBord[Nk]), InCoord=InCoord[1]), by='V1']
     Plot$AllIn[Plot$InCoord==FALSE] <- FALSE
-
   if (Tdis$shape=='quadrat'){
     pl <- ggplot2::ggplot() + ggplot2::theme(text=ggplot2::element_text(size=20)) + 
-          ggplot2::geom_point(data=dplyr::filter(Plot, AllIn==TRUE), ggplot2::aes(x=X, y=Y, fill=species, size= DBH1),pch=21) + 
+          ggplot2::geom_point(data=dplyr::filter(Plot, AllIn==TRUE), ggplot2::aes(x=X, y=Y, col=species, size= DBH1),pch=19) + 
 	  ggplot2::geom_point(data=dplyr::filter(Plot, AllIn==FALSE), ggplot2::aes(x=X, y=Y, col=species, size= DBH1), pch=1) +
           ggplot2::geom_rect(ggplot2::aes(xmin=Tdis$coord[1], xmax=Tdis$coord[2], ymin=Tdis$coord[3], ymax=Tdis$coord[4]), fill=NA,col='black')
   }else if (Tdis$shape=='circular'){
@@ -86,7 +85,13 @@ plot.DistanceTab <- function(Tdis, Nk=4){
           ggplot2::geom_point(data=dplyr::filter(Plot, AllIn==TRUE), ggplot2::aes(x=X, y=Y, fill=species, size= DBH1),pch=21) + 
 	  ggplot2::geom_point(data=dplyr::filter(Plot, AllIn==FALSE), ggplot2::aes(x=X, y=Y, col=species, size= DBH1), pch=1)
   }
+
+  Ming <- Compute_mingling(Tdis, Nk=Nk)
+  SizeDiff <- Compute_Size_Diff(Tdis, Nk=Nk)
+  Wink <- Compute_Winkelmass(Tdis, Nk=Nk)
+
   print(pl)
+  return(pl)
 }
 
 #' Compute distance between trees and border
@@ -211,7 +216,7 @@ Compute_Size_Diff <- function(TabDis, Nk=4, EdgeCorrection='None'){
 #' @return numeric mean Winkelmass value for the plot
 #' @export
 Compute_Winkelmass <- function(TabDis, Nk=4){
-	if (Nk<=0|Nk>10){stop('Number of k neighbours Nk must lie between 1 and 10')}
+	if (Nk<=2 | Nk>=8){stop('This function only works for at least 3 neighboors. More than 7 neighboors seems not reasonable')}
 	if (!('DistanceTab' %in% class(TabDis))){stop('Argument must a DistanceTab object from TabDist function')}
     DF <- data.table::as.data.table(TabDis$DF)
     DF <- DF[, N:=1:10, by="V1"]
@@ -235,13 +240,16 @@ Compute_Winkelmass <- function(TabDis, Nk=4){
 	   p4 <- dplyr::filter(T, V1==p3$V2, V2==1)
 	   listAng <- c(p1$Ang, p2$Ang, p3$Ang, p4$Ang)
 	   if (round(sum(listAng))!=360){stop(paste0('Trouble with angle
-	     calculation with tree Nb ', V1[1]))}
+	     calculation with tree Nb ', V1[1]), ":", listAng)}
 	   listAng <- round(listAng, digits=1)
 	   listAng[listAng>180] <- 360 -  listAng[listAng>180]
 	   return(sum(listAng<=(360 / Nk)))
     }
-    Tab <- 1 + e1071::permutations(3)
-    Tab <- cbind(10+Tab[,1],Tab[,1]*10+Tab[,2],Tab[,2]*10+Tab[,3],Tab[,3]*10+1)
+    Tab <- 1 + e1071::permutations(Nk-1)
+    TabAll <- NA*Tab
+    TabAll[, 1] <- Tab[,1] + 10
+    for (k in 2:(Nk-1)){TabAll[,k]=Tab[,(k-1)]*10+Tab[,k]}
+    TabAll <- cbind(TabAll, Tab[, (Nk-1)] * 10 + 1)
 
     listAngles <- function(X1, Y1, X2, Y2, iN, Nk, V1, AllIn, Tab){
 	   if (AllIn[1]==FALSE){return(NA)}
@@ -253,17 +261,18 @@ Compute_Winkelmass <- function(TabDis, Nk=4){
 	   Ags[Ags<0] <- 360 + Ags[Ags<0]
 	   T <- as.data.frame(t(iN))
 	   T <- dplyr::mutate(T, Ang=Ags, I=10*V1 + V2)
-	   Tabnew <- Tab
-           Tabnew[] <- T$Ang[match(unlist(Tab), T$I)]
+	   Tabnew <- TabAll
+           Tabnew[] <- T$Ang[match(unlist(TabAll), T$I)]
 	   In <- which(round(apply(Tabnew,1, sum))==360)
-	   if (length(In)!=1){stop(paste0('Trouble with angle
-             calculation with tree Nb ', V1[1]))}
+	   if (length(In)!=1){
+		   stop(paste0('Trouble with angle
+               calculation with tree Nb ', V1[1]))}
 	   listAng <- Tabnew[In,]
 	   listAng <- round(listAng, digits=1)
 	   listAng[listAng>180] <- 360 -  listAng[listAng>180]
 	   return(sum(listAng<(360 / Nk)))
      }
-     TabWink <- DF[, .(Wink=listAngles(X1, Y1, X2, Y2, iN=iN, Nk=Nk, V1, AllIn, Tab=Tab)/Nk, AllIn=AllIn[1]), by='V1']
+     TabWink <- DF[, .(Wink=listAngles(X1, Y1, X2, Y2, iN=iN, Nk=Nk, V1, AllIn, Tab=TabAll)/Nk, AllIn=AllIn[1]), by='V1']
      TabWink <- dplyr::filter(TabWink, AllIn==TRUE)
      return(mean(TabWink$Wink))
 }
