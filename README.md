@@ -10,7 +10,9 @@ devtools::install_gitlab('arnaud.guyennon/forestdiversity', build_vignettes=TRUE
 
 ## Vignette
 
-/bin/bash: w:w : commande introuvable
+A vignette with details and example (variable PlotExample) can be consulted by typing in R:
+
+vignette('forestdiversity')
 
 ## Population indices
 
