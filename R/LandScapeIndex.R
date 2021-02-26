@@ -5,19 +5,19 @@
 #' @export
 getdataBaugesInit <- function(){
   LandscapeRaw <- sp::read.asciigrid('DATA/Bauges_Landscape/cellID.asc')
-  if (exists('DATA/Bauges_Landscape/trees75.Rds')){
+  if (file.exists('DATA/Bauges_Landscape/trees75.Rds')){
     DF <- readRDS('DATA/Bauges_Landscape/trees75.Rds')
   }else{
     DF <- read.csv('DATA/Bauges_Landscape/trees75.csv')
     DF <- data.table::as.data.table(DF)
+    DF <- DF[(!is.na(dbh))]
+    DF <- saveRDS(file='DATA/Bauges_Landscape/trees75.Rds', DF)
   }
-  DF <- DF[(!is.na(dbh))]
   DF <- dplyr::mutate(DF, Area=25*25*1e-4)
-  Landscape <- data.table::as.data.table(coordinates(LandscapeRaw))
+  Landscape <- data.table::as.data.table(sp::coordinates(LandscapeRaw))
   Landscape <- dplyr::mutate(Landscape, cellID=LandscapeRaw@data[[1]])
-  Landscape <- Landscape[(cellID %in% DFstand$cellID)]
   names(Landscape)[(1:2)] <- c('XCenter', 'YCenter')
-  DF <- merge(DF, Landscape, by='cellID')
+  DF <- merge(DF, Landscape, by='cellID', all.x=TRUE)
   return(DF)
 }
 
@@ -33,7 +33,7 @@ LandscapeDBHtoClass <- function(DF){
   DFstand <- DF[, .(NHA=sum(n/Area), BA=sum((n*pi*(dbh/200)^2)/Area),
       Dg=sqrt(sum(n*dbh^2)/sum(n)), Area=mean(Area), XCenter=XCenter[1], YCenter=YCenter[1]), by="cellID"]
   DFclass <- DF[, .(n=sum(n)), by=list(cellID, Cat)]
-  DFclass <- pivot_wider(DFclass, values_from=n, names_from=Cat,
+  DFclass <- tidyr::pivot_wider(DFclass, values_from=n, names_from=Cat,
          names_prefix='Nclass_', values_fill=list(n=0))
   DFclass <- merge(DFstand, DFclass, by='cellID')
   return(DFclass)
@@ -82,54 +82,57 @@ ComputeShScale <- function(DF, Res=1){
 #' Compute a gridded landscape
 #'
 #' This function compute the gridded landscape
-#' @param DF, data.frame of landscape data
+#' @param DFclass, data.frame of landscape data
 #' @param Res, numeric resolution (in km) of the grid
 #' @param N, integer from 1 to 9; here to include different grid configurations
 #' @return data.frame of gridded landscape
 #' @export
-Quad <- function(DF, Res=1, N=9){
-    xrange <- range(DF$XCenter) * 1e-3
-    yrange <- range(DF$YCenter) * 1e-3
+GridLandscape <- function(DFclass, Res=1, N=9){
+    xrange <- range(DFclass$XCenter) * 1e-3
+    yrange <- range(DFclass$YCenter) * 1e-3
     dgrid <- expand.grid(dx=seq(Res/10, Res/2, length.out=3), dy=seq(Res/10, Res/2, length.out=3))
     dgrid <- dgrid[N, ]
     xgrid <- seq((xrange[1]-dgrid$dx), (xrange[2]+Res/2), by=Res)
     ygrid <- seq((yrange[1]-dgrid$dy), (yrange[2]+Res/2), by=Res)
-    DF <- dplyr::mutate(DF, xind=findInterval(XCenter * 1e-3, xgrid),
+    DFclass <- dplyr::mutate(DFclass, xind=findInterval(XCenter * 1e-3, xgrid),
             yind=findInterval(YCenter * 1e-3, ygrid),
 	    Iind=paste(xind, yind, sep='/'))
-    pArea <- DF[, pArea:=Area/sum(Area), by=list(xind,yind)][, pArea]
-    iClass  <- which(substr(names(DF),1,7)=='Nclass_')
-    DFClass <- DF[, ..iClass]
-    DFClass <- DFClass * matrix(rep(pArea, dim(DFClass)[2]), nrow=dim(DF)[1])
-    DFClass <- mutate(DFClass, Iind=paste(DF$xind, DF$yind, sep='/'))
-    DF2 <- DFClass[, lapply(.SD, sum, na.rm=TRUE), by=Iind] 
-    DF3 <- DF[,list(
+    pArea <- DFclass[, pA:=Area/sum(Area), by=list(xind,yind)]
+    pArea <- pArea[, pA]
+    iClass  <- which(substr(names(DFclass),1,7)=='Nclass_')
+    DFiClass <- DFclass[, ..iClass]
+    DFiClass <- DFiClass * matrix(rep(pArea, dim(DFiClass)[2]), nrow=dim(DFclass)[1])
+    DFiClass <- dplyr::mutate(DFiClass, Iind=paste(DFclass$xind, DFclass$yind, sep='/'))
+    DF2 <- DFiClass[, lapply(.SD, sum, na.rm=TRUE), by=Iind] 
+    DF3 <- DFclass[,list(
 	    Dg=sum(Dg*Area*NHA, na.rm=TRUE)/sum(Area*NHA, na.rm=TRUE),
 	    BA=sum(BA*Area, na.rm=TRUE)/sum(Area, na.rm=TRUE),
 	    Area=sum(Area, na.rm=TRUE),
 	    XCenter=mean(XCenter), YCenter=mean(YCenter),
 	    xgrid=xgrid[mean(xind)]+Res/2, ygrid=ygrid[mean(yind)]+Res/2), by=Iind]
     DF <- merge(DF2, DF3, by="Iind")
+    class(DF) <- append('Grid', class(DF))
     return(DF)
 }
 
-Plot_Grid <- function(DF, Res=1, N=9){
-	require(viridis)
-  DFQuad <- Quad(DF, Res=Res, N=9)
-  plog <- function(x){
+plot.Grid <- function(DFQuad, Res=1, N=9){
+#    DFQuad <- Quad(DF, Res=Res, N=9)
+    plog <- function(x){
         x[is.na(x)] <- 0
         x <- x/sum(x)
        -sum(x*log(x), na.rm=TRUE)
-  }
-  iClass  <- which(substr(names(DFQuad),1,7)=='Nclass_')
-  SH <- apply(DFQuad[, ..iClass], 1, plog)
-  DFQuad <- mutate(DFQuad, Sh=SH)
-  pl <- ggplot(DFQuad, aes(xmin=xgrid-Res/2, xmax=xgrid+Res/2,
+    }
+    iClass  <- which(substr(names(DFQuad),1,7)=='Nclass_')
+    SH <- apply(DFQuad[, ..iClass], 1, plog)
+    DFQuad <- dplyr::mutate(DFQuad, Sh=SH)
+    pl <- ggplot2::ggplot(DFQuad, ggplot2::aes(xmin=xgrid-Res/2, xmax=xgrid+Res/2,
 	ymin=ygrid-Res/2, ymax=ygrid+Res/2, fill=Sh)) +
-        scale_fill_viridis(begin=0, end=2) + geom_rect() +
-	theme(text=element_text(size=24)) +
-       	xlab('') + ylab('')
-  png(file=paste0('Grid',Res,'.png'), width=1800, height=1200,res=120);print(pl);dev.off()
+        viridis::scale_fill_viridis() + #begin=0, end=2) +
+       	ggplot2::geom_rect() +
+	ggplot2::theme(text=ggplot2::element_text(size=24)) +
+       	ggplot2::xlab('') + ggplot2::ylab('')
+    png(file=paste0('Grid',Res,'.png'), width=1800, height=1200,res=120)
+    print(pl);dev.off()
 }
 
 Plot_Shannon_Scale <- function(DF, Res=c(0.05, 0.1, 1, 2, 5)){
