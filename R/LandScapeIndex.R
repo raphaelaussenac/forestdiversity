@@ -1,18 +1,10 @@
-require(dplyr)
-require(ggplot2)
-require(data.table)
-require(rgdal)
-require(raster)
-require(rgeos)
-require(tidyr)
-
 #' Retrieve Landscape dataset
 #'
 #' This function gather landscape data into on data.table 
 #' @return DF, data.table
 #' @export
 getdataBaugesInit <- function(){
-  LandscapeRaw <- read.asciigrid('DATA/Bauges_Landscape/cellID.asc')
+  LandscapeRaw <- sp::read.asciigrid('DATA/Bauges_Landscape/cellID.asc')
   if (exists('DATA/Bauges_Landscape/trees75.Rds')){
     DF <- readRDS('DATA/Bauges_Landscape/trees75.Rds')
   }else{
