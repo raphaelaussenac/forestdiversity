@@ -86,10 +86,12 @@ plot.DistanceTab <- function(Tdis, Nk=4){
 	  ggplot2::geom_point(data=dplyr::filter(Plot, AllIn==FALSE), ggplot2::aes(x=X, y=Y, col=species, size= DBH1), pch=1)
   }
 
-  Ming <- Compute_mingling(Tdis, Nk=Nk)
-  SizeDiff <- Compute_Size_Diff(Tdis, Nk=Nk)
-  Wink <- Compute_Winkelmass(Tdis, Nk=Nk)
+  Ming <- round(Compute_mingling(Tdis, Nk=Nk)$phi, digits=2)
+  SizeDiff <- round(Compute_Size_Diff(Tdis, Nk=Nk)$phi, digits=2)
+  Wink <- round(Compute_Winkelmass(Tdis, Nk=Nk), digits=2)
 
+  Title <- paste('Mingling Phi :', Ming, '\nSize Differentiation Phi:', SizeDiff, '\nWinkemass index : ', Wink, sep='')
+  pl <- pl + ggplot2::ggtitle(Title)
   print(pl)
   return(pl)
 }
@@ -204,7 +206,7 @@ Compute_Size_Diff <- function(TabDis, Nk=4, EdgeCorrection='None'){
     TT <- dplyr::arrange(TT, DBH)
     TT <- cbind(TT, R=c(0, cumsum(TT$DBH)[1:(N-1)]))
     ET <- 1 - 2/(N*(N-1)) * sum(TT$R/TT$DBH)
-    return(cbind(T, ET=ET, phi=1-T/ET))
+    return(data.frame(T=T, ET=ET, phi=1-T/ET))
 } 
 
 #' Compute Uniform angle Index
