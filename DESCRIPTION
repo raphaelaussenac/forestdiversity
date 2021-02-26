@@ -20,7 +20,8 @@ Imports:
     dplyr,
     data.table,
     deldir,
-    e1071
+    e1071,
+    sp
 Suggests: 
     knitr,
     rmarkdown
