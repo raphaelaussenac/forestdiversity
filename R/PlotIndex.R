@@ -58,7 +58,7 @@ TabDist <- function(DF, shape="quadrat", coord, Nselec = 10, Inter=10){
         X2=DF$X[Tdis$V2], Y2=DF$Y[Tdis$V2], sp2=DF$species[Tdis$V2], InCoord=DF$InCoord[Tdis$V1],
         DBH1=DF$D_cm[Tdis$V1], DBH2=DF$D_cm[Tdis$V2], ClassSize1=DF$ClassSize[Tdis$V2],
        	ClassSize2=DF$ClassSize[Tdis$V2], DisToBord=DF$DisToBord[Tdis$V1])
-    Tdis <- list(DF=Tdis, shape=Plot$shape, coord=Plot$coord)
+    Tdis <- list(DF=Tdis, shape=Plot$shape, coord=Plot$coord, Nselec=10)
     class(Tdis) <- append('DistanceTab', class(Tdis))
     return(Tdis)
 }
@@ -126,8 +126,9 @@ DisToBorder <- function(Plot){
 #' @return data.frame with mingling metrics
 #' @export
 Compute_mingling <- function(TabDis, Nk=4, EdgeCorrection="NN1"){
-	if (Nk<=0|Nk>10){stop('Number of k neighbours Nk must lie between 1 and 10')}
+	if (Nk<=1|Nk>TabDis$Nselec){stop('Number of k neighbours Nk must lie between 2 and Nselec (argument in TabDist)')}
 	if (!('DistanceTab' %in% class(TabDis))){stop('Argument must a DistanceTab object from TabDist function')}
+	if (sum(TabDis$DF$InCoord)==0){stop('No tree selected in the plot')}
     DFDis <- dplyr::mutate(TabDis$DF, I1=sp1!=sp2)
     DFDis <- dplyr::filter(DFDis, InCoord==TRUE)
     DFDis <- data.table::as.data.table(DFDis)
@@ -172,10 +173,11 @@ Compute_mingling <- function(TabDis, Nk=4, EdgeCorrection="NN1"){
 #' @return data.frame with size differentiation indexes
 #' @export
 Compute_Size_Diff <- function(TabDis, Nk=4, EdgeCorrection='None'){
-	if (Nk<=0|Nk>10){stop('Number of k neighbours Nk must lie between 1 and 10')}
+	if (Nk<=1|Nk>TabDis$Nselec){stop('Number of k neighbours Nk must lie between 2 and Nselec (argument in TabDist)')}
 	if (!('DistanceTab' %in% class(TabDis))){stop('Argument must a DistanceTab object from TabDist function')}
+	if (sum(TabDis$DF$InCoord)==0){stop('No tree selected in the plot')}
       N <- length(unique(TabDis$DF$V1))
-      DFDis <- dplyr::mutate(TabDis$DF, I=rep(1:10, N))
+      DFDis <- dplyr::mutate(TabDis$DF, I=rep(1:TabDis$Nselec, N))
       DFDis <- dplyr::filter(DFDis, InCoord==TRUE, I<=Nk)
       DFDis <- dplyr::mutate(DFDis, DBHmax=apply(cbind(DFDis$DBH1, DFDis$DBH2), 1, max),
 	DBHmin=apply(cbind(DFDis$DBH1, DFDis$DBH2), 1, min))
@@ -220,6 +222,7 @@ Compute_Size_Diff <- function(TabDis, Nk=4, EdgeCorrection='None'){
 Compute_Winkelmass <- function(TabDis, Nk=4){
 	if (Nk<=2 | Nk>=8){stop('This function only works for at least 3 neighboors. More than 7 neighboors seems not reasonable')}
 	if (!('DistanceTab' %in% class(TabDis))){stop('Argument must a DistanceTab object from TabDist function')}
+	if (sum(TabDis$DF$InCoord)==0){stop('No tree selected in the plot')}
     DF <- data.table::as.data.table(TabDis$DF)
     DF <- DF[, N:=1:10, by="V1"]
     DF <- DF[, AllIn:=(Dis[Nk]<=DisToBord), by='V1']
