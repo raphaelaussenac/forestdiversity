@@ -4,7 +4,8 @@
 #' This function compute resilience metrics for a dataset 
 #' @param dataSet, data.frame formatted using format_Salem or format_Samsara with multiple simulation conditions
 #' @param Nvar string, name of the variable studied
-#' @return A data.frame containing resilience metrics for each simulation
+#' @return A data.frame containing resilience metrics for each simulation. A NA value is returned if there is an error
+#' -99 means that recovery was not complete and metrics could not be computed
 #' @export
 EventResilience <- function(dataSet, Nvar='V_m3', RecTime=20){
     dataSet <- data.table(as.data.table(dataSet))
@@ -18,7 +19,7 @@ EventResilience <- function(dataSet, Nvar='V_m3', RecTime=20){
     return(TT)
 }
 
-#' Compute resilience metrics
+#' Compute resilience metrics for one simulation
 #'
 #' This function compute resilience metrics for list of variables
 #' @param Var, numeric the variable studied
