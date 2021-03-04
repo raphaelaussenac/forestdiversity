@@ -12,7 +12,8 @@ EventResilience(dataSet, Nvar = "V_m3", RecTime = 20)
 \item{Nvar}{string, name of the variable studied}
 }
 \value{
-A data.frame containing resilience metrics for each simulation
+A data.frame containing resilience metrics for each simulation. A NA value is returned if there is an error
+-99 means that recovery was not complete and metrics could not be computed
 }
 \description{
 This function compute resilience metrics for a dataset
