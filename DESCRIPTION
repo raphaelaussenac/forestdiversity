@@ -21,7 +21,8 @@ Imports:
     data.table,
     deldir,
     e1071,
-    sp
+    sp,
+    ggplot2
 Suggests: 
     knitr,
     rmarkdown
