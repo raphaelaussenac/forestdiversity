@@ -2,7 +2,7 @@
 % Please edit documentation in R/ResilienceIndex.R
 \name{RecoveryMetrics}
 \alias{RecoveryMetrics}
-\title{Compute resilience metrics}
+\title{Compute resilience metrics for one simulation}
 \usage{
 RecoveryMetrics(Var, Year, PreDisturb, RecTime = 20, FormatOut = "list")
 }
