@@ -32,6 +32,14 @@ For both cases, the indices computed are
 3. Simpson Index
 
 These 3 indices, also called Hill numbers, are computed based on abundances.
+If we $p_i$ the proportion of each class and N the total number of classes:
+
+$Shannon = \sum_{i=1}^{i=N}(p_i * log(p_i))$
+
+$Simpson = \sum_{i=1}^{i=N}(p_i^2)$
+
+$GiniSimpson = 1 - Simpson$ 
+
 Abundances can be expressed as tree density (i.e. the number of trees in each species/size class) or as the proportion of basal area (the proportion of total basal area within each species/size class).
 For example if we want to compute hill number based on tree density on species, command would be:
 
@@ -59,9 +67,12 @@ CalcDivIndex(PlotExample, Nvar = 'D_cm', Inter=10, type = 'BA')
 
 In these cases, the Gini index is also added to the output.
 Here the Gini index is based on basal area.
-
-
 The function used in CalcDivIndex can be used independently.
+
+```
+```{r, echo = TRUE}
+GiniPop(Size=PlotExample$D_cm, BA=PlotExample$D_cm^2, PLOT=TRUE)
+```
 
 # Spatial metrics
 
