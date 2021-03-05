@@ -90,9 +90,10 @@ CalcDivIndex <- function(dataSet, Nvar = 'D_cm', Inter = 10, type = 'BA'){
 #' @param Size numeric vector, size of each treee in the population (in cm)
 #' @param BA numeric vector, basal area associated with each tree (in m2ha-1)
 #' @param Weight, numeric vector, weight associated with each tree
+#' @param PLOT, logical, if set to 1 plot the lorenz curve
 #' @return The Gini index for the population
 #' @export
-GiniPop <- function(Size, BA, weight = rep(1, length = length(x))){
+GiniPop <- function(Size, BA, weight = 1, PLOT=FALSE){
 	# We handle cases where several trees have same size
     DF <- dplyr::group_by(data.frame(S=Size, B=BA, W=weight), S)
     DF <- dplyr::summarise(DF, B=sum(B), W=sum(W))
@@ -113,6 +114,15 @@ GiniPop <- function(Size, BA, weight = rep(1, length = length(x))){
       dx <- diff(x)
     }
     A <- sum(c(x[1],dx)*(y+c(0,y[1:(length(y)-1)]))/2) # Area under the Lorenz Curve
+    if (PLOT==TRUE){
+        pl <- ggplot2::ggplot(data.frame(x=x,y=y), ggplot2::aes(x=x,y=y)) +
+	    ggplot2::geom_area() + ggplot2::geom_abline(col='red') +
+	    ggplot2::xlab('Cumulative proportion of Size') +
+	    ggplot2::ylab('Cumulative proportion of basal area') +
+	    ggplot2::theme_bw(base_size=20) +
+	    ggplot2::ggtitle(paste0('Gini coefficient : ', round(1-2*A, digits=2)))
+        print(pl)
+    }
     return(1-2*A)
 }
 
