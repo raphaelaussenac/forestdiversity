@@ -426,44 +426,6 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <p>When height is filled in the dataset (variable ‘H_m’), one can compute the structural complexity index (SCI: Zenner &amp; Hibbs 2000). SCI is defined as “the sum of the surface areas of the [triangulated irregular network] for a stand divided by the ground area covered by all triangles”. We strongly recommend the reading of Zenner &amp; Hibbs (2000) for a better understanding of this index. The index ranges from 1 (all trees have the same height) to theoretically infinity, the higher value meaning a higher 3D heterogeneity.</p>
 <div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb21-1" data-line-number="1"><span class="kw">StructuralComplexityIndex</span>(PlotExample, <span class="dt">coord=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">80</span>,<span class="dv">0</span>,<span class="dv">80</span>))</a></code></pre></div>
 <pre><code>## [1] 3.921797</code></pre>
-<!--
-# Recovery Metrics (Resilience)
-
-Three resilience metrics can be computed for a selected variable: Time to recover, Degree of recovery after 20 years and the recovery rate.
-We first need to 'format' Salem outputs:
-
-
-```r
-DF <- read.csv('../data/virtualExperiment.csv')
-DF <- format_Salem(DF)
-print(head(DF))
-```
-
-```
-##    year site     V_m3       Dg        N       BA PreDisturb  GiniSize    ShSize
-## 1: 2001    1 443.0702 19.89359 1671.127 16.53391       TRUE 0.3309796 0.9624366
-## 2: 2001    2 454.9878 19.90266 1671.127 16.54900       TRUE 0.3227870 0.9434714
-## 3: 2001    3 449.9494 19.97997 1671.127 16.67781       TRUE 0.3269208 0.9561953
-## 4: 2001    4 456.8315 19.98186 1667.397 16.64374       TRUE 0.2960588 0.8808367
-## 5: 2001    5 465.8782 19.89479 1671.127 16.53592       TRUE 0.3144299 0.9225276
-## 6: 2001    6 460.5309 19.96678 1671.127 16.65581       TRUE 0.3186662 0.9360476
-##       GSSize  SimpSize NclassSize      ShSp      GSSp    SimpSp NclassSp   src
-## 1: 0.5554403 0.4445597          7 0.0000000 0.0000000 1.0000000        1 Salem
-## 2: 0.5457249 0.4542751          7 0.6931471 0.4999999 0.5000001        2 Salem
-## 3: 0.5529560 0.4470440          7 0.6931392 0.4999920 0.5000080        2 Salem
-## 4: 0.5079802 0.4920198          7 0.6931437 0.4999965 0.5000035        2 Salem
-## 5: 0.5348961 0.4651039          7 0.0000000 0.0000000 1.0000000        1 Salem
-## 6: 0.5425455 0.4574545          7 0.6931295 0.4999823 0.5000177        2 Salem
-```
-
-We use EventResilience function to compute metrics:
-
-
-Some notation explanation: Theta is the recovery rate, TimeRec the time to recovery and DegRec the degree of recovery after X years (here 20).
-If TimeRec and Theta are -99, it means the system did not reach recovery.
-If any value is NA, it means that the metric could not be calculated and data should be inspected.
-
-!-->
 </div>
 </div>
 
