@@ -14,7 +14,7 @@ EventResilience <- function(dataSet, Nvar='V_m3', RecTime=20){
     names(dataSetIni)[!(names(dataSetIni) %in% c('year','site','src'))] <- 
     paste0(names(dataSetIni)[!(names(dataSetIni) %in% c('year','site','src'))], 'Ini')
     if (!Nvar %in% names(dataSet)){stop(paste0('Careful variable chosen is not in the data: ', paste(names(dataSet), collapse=' ')))}
-    dataSet <- dplyr::mutate(dataSet, Var=dataSet[, which(names(dataSet)==Nvar)])
+    dataSet <- dplyr::mutate(dataSet, Var=dataSet[, ..Nvar][[1]])
     TT <- dataSet[,.(RecMet=tryCatch(RecoveryMetrics(Var, year, PreDisturb, RecTime=RecTime, FormatOut='str'),
        error=function(e){return('-1/-1/-1')})), by='site']
     TT <- dplyr::mutate(TT, Theta=as.numeric(do.call(rbind, strsplit(RecMet, '/'))[, 1]),
