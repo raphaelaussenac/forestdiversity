@@ -96,6 +96,10 @@ format_samsara_Pop <- function(dataRaw){
 #' @export
 format_salem <- function(dataRaw){
     dataRaw <- data.table::as.data.table(dataRaw)
+#!!!!!
+    dataRaw <- dataRaw[, PreDisturb:=(postThinning=='false' & year==min(year)), by='site']
+    dataRaw$year[dataRaw$PreDisturb==TRUE] <- dataRaw$year[dataRaw$PreDisturb==TRUE] - 10
+#!!!!
     HetIndexSize <- CalcDivIndex(dataRaw, 'D_cm', Inter=10, type="BA")
     HetIndexSize <- dplyr::select(HetIndexSize, -src)
     names(HetIndexSize)[!(names(HetIndexSize) %in% c('year', 'site'))] <- 
@@ -110,5 +114,5 @@ format_salem <- function(dataRaw){
     dataSet <- merge(dataSet, HetIndexSize, by=c('year', 'site'), all.x=TRUE)
     dataSet <- merge(dataSet, HetIndexSp, by=c('year', 'site'), all.x=TRUE)
     dataSet <- dplyr::mutate(dataSet, BAinc=c(diff(BA), NA))
-    return(dplyr::mutate(dataSet, src='Salem'))
+    return(dplyr::mutate(dataSet, src='salem'))
 }
