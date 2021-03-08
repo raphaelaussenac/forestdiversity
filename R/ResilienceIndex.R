@@ -9,13 +9,20 @@
 #' @export
 EventResilience <- function(dataSet, Nvar='V_m3', RecTime=20){
     dataSet <- data.table(as.data.table(dataSet))
-    TT <- dataSet[,.(RecMet=tryCatch(RecoveryMetrics(V_m3, year, PreDisturb, RecTime=RecTime, FormatOut='str'),
-				     error=function(e){return('-1/-1/-1')})), by='site']
+    dataSetIni <- dataSet[PreDisturb==TRUE, ]
+    dataSetIni <- dplyr::select(dataSetIni, -PreDisturb, -year)
+    names(dataSetIni)[!(names(dataSetIni) %in% c('year','site','src'))] <- 
+    paste0(names(dataSetIni)[!(names(dataSetIni) %in% c('year','site','src'))], 'Ini')
+    if (!Nvar %in% names(dataSet)){stop(paste0('Careful variable chosen is not in the data: ', paste(names(dataSet), collapse=' ')))}
+    dataSet <- dplyr::mutate(dataSet, Var=dataSet[, which(names(dataSet)==Nvar)])
+    TT <- dataSet[,.(RecMet=tryCatch(RecoveryMetrics(Var, year, PreDisturb, RecTime=RecTime, FormatOut='str'),
+       error=function(e){return('-1/-1/-1')})), by='site']
     TT <- dplyr::mutate(TT, Theta=as.numeric(do.call(rbind, strsplit(RecMet, '/'))[, 1]),
-			TimeRec=as.numeric(do.call(rbind, strsplit(RecMet, '/'))[,2]),
-			DegRec=as.numeric(do.call(rbind, strsplit(RecMet, '/'))[,3]))
+	TimeRec=as.numeric(do.call(rbind, strsplit(RecMet, '/'))[,2]),
+	DegRec=as.numeric(do.call(rbind, strsplit(RecMet, '/'))[,3]))
     TT <- dplyr::select(TT, -RecMet)
     TT[TT==-1] <- NA
+    TT <- merge(TT, dataSetIni, by="site")
     return(TT)
 }
 
@@ -89,7 +96,18 @@ format_Samsara_Pop <- function(dataRaw){
 #' @export
 format_Salem <- function(dataRaw){
     dataRaw <- data.table::as.data.table(dataRaw)
-    dataSet <- dataRaw[, .(V_m3=sum(weight*V_m3), Dg=sqrt(sum(weight*D_cm^2)/sum(weight))), by=list(site,year)]
+    HetIndexSize <- CalcDivIndex(dataRaw, 'D_cm', Inter=10, type="BA")
+    HetIndexSize <- dplyr::select(HetIndexSize, -src)
+    names(HetIndexSize)[!(names(HetIndexSize) %in% c('year', 'site'))] <- 
+	   paste0(names(HetIndexSize)[!(names(HetIndexSize) %in% c('year', 'site'))], 'Size')
+    HetIndexSp <- CalcDivIndex(dataRaw, 'species', Inter=10, type="BA")
+    HetIndexSp <- dplyr::select(HetIndexSp, -src)
+    names(HetIndexSp)[!(names(HetIndexSp) %in% c('year', 'site'))] <-
+         paste0(names(HetIndexSp)[!(names(HetIndexSp) %in% c('year', 'site'))], 'Sp')
+    dataSet <- dataRaw[, .(V_m3=sum(weight*V_m3), Dg=sqrt(sum(weight*D_cm^2)/sum(weight)),
+	 N=sum(weight), BA=sum(weight*(D_cm/200)^2)), by=list(site, year)]
     dataSet <- dataSet[, PreDisturb:=(year==min(year)), by='site']
-    return(dataSet)
+    dataSet <- merge(dataSet, HetIndexSize, by=c('year', 'site'), all.x=TRUE)
+    dataSet <- merge(dataSet, HetIndexSp, by=c('year', 'site'), all.x=TRUE)
+    return(dplyr::mutate(dataSet, src='Salem'))
 }
