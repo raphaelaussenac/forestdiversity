@@ -62,7 +62,7 @@ RecoveryMetrics <- function(Var, Year, PreDisturb, RecTime=20, FormatOut='list')
 #' This function format the data for further analysis
 #' @param dataRaw, data.frame, dataSet containing the simulation output of Samsara
 #' @return dataSet, data.table, formatted outuput
-format_Samsara_Tree <- function(dataRaw){
+format_samsara_Tree <- function(dataRaw){
     dataSet <- dplyr::select(dataRaw, -Int.Energy..MJ.year.1., -Pot.Energy..MJ.year.1.,
 	-quality, -marketValue..euros., -dendroHabitats, -ecologicalScore, -treeId, -speciesCode)
     names(dataSet) <- c('site', 'year', 'eventName', 'species', 'X', 'Y', 'D_cm', 'H_m', 'V_m3')
@@ -73,7 +73,7 @@ format_Samsara_Tree <- function(dataRaw){
 #' This function format the data for further analysis
 #' @param dataRaw, data.frame, dataSet containing the simulation output of Samsara
 #' @return dataSet, data.table, formatted outuput
-format_Samsara_Pop <- function(dataRaw){
+format_samsara_Pop <- function(dataRaw){
     dataSet <- dplyr::select(dataRaw, simulationId, eventName, year, speciesName,
         N_ha, G_ha, V_ha, Dg, Dm, Carbon_AG_ha, Carbon_BG_ha, L4Cover,
 	NSaplings_ha, NRecruits_ha_yr, NDead_ha_yr, cut_N_ha, cut_V_ha, deadCut_N_ha, deadCut_V_ha) %>%
@@ -94,7 +94,7 @@ format_Samsara_Pop <- function(dataRaw){
 #' @param dataRaw, data.frame, dataSet containing the simulation output of Salem
 #' @return dataSet, data.table, formatted outuput
 #' @export
-format_Salem <- function(dataRaw){
+format_salem <- function(dataRaw){
     dataRaw <- data.table::as.data.table(dataRaw)
     HetIndexSize <- CalcDivIndex(dataRaw, 'D_cm', Inter=10, type="BA")
     HetIndexSize <- dplyr::select(HetIndexSize, -src)
