@@ -105,7 +105,7 @@ format_salem <- function(dataRaw){
     names(HetIndexSp)[!(names(HetIndexSp) %in% c('year', 'site'))] <-
          paste0(names(HetIndexSp)[!(names(HetIndexSp) %in% c('year', 'site'))], 'Sp')
     dataSet <- dataRaw[, .(V_m3=sum(weight*V_m3), Dg=sqrt(sum(weight*D_cm^2)/sum(weight)),
-	 N=sum(weight), BA=sum(weight*(D_cm/200)^2)), by=list(site, year)]
+	 N=sum(weight), BA=pi*sum(weight*(D_cm/200)^2)), by=list(site, year)]
     dataSet <- dataSet[, PreDisturb:=(year==min(year)), by='site']
     dataSet <- merge(dataSet, HetIndexSize, by=c('year', 'site'), all.x=TRUE)
     dataSet <- merge(dataSet, HetIndexSp, by=c('year', 'site'), all.x=TRUE)
