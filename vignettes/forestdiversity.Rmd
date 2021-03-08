@@ -158,6 +158,26 @@ The index ranges from 1 (all trees have the same height) to theoretically infini
 ```{r, echo = TRUE}
 StructuralComplexityIndex(PlotExample, coord=c(0,80,0,80))
 ```
+<!--
+# Recovery Metrics (Resilience)
+
+Three resilience metrics can be computed for a selected variable: Time to recover, Degree of recovery after 20 years and the recovery rate.
+We first need to 'format' Salem outputs:
+
+```{r echo=TRUE}
+DF <- read.csv('../data/virtualExperiment.csv')
+DF <- format_Salem(DF)
+print(head(DF))
+```
+
+We use EventResilience function to compute metrics:
+
+
+Some notation explanation: Theta is the recovery rate, TimeRec the time to recovery and DegRec the degree of recovery after X years (here 20).
+If TimeRec and Theta are -99, it means the system did not reach recovery.
+If any value is NA, it means that the metric could not be calculated and data should be inspected.
+
+!-->
 
 
 
