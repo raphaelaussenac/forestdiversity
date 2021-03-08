@@ -109,5 +109,6 @@ format_Salem <- function(dataRaw){
     dataSet <- dataSet[, PreDisturb:=(year==min(year)), by='site']
     dataSet <- merge(dataSet, HetIndexSize, by=c('year', 'site'), all.x=TRUE)
     dataSet <- merge(dataSet, HetIndexSp, by=c('year', 'site'), all.x=TRUE)
+    dataSet <- dplyr::mutate(dataSet, BAinc=c(diff(BA), NA))
     return(dplyr::mutate(dataSet, src='Salem'))
 }
