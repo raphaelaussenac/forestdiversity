@@ -8,21 +8,24 @@
 #' -99 means that recovery was not complete and metrics could not be computed
 #' @export
 EventResilience <- function(dataSet, Nvar='V_m3', RecTime=20){
-    dataSet <- data.table(as.data.table(dataSet))
-    dataSetIni <- dataSet[PreDisturb==TRUE, ]
-    dataSetIni <- dplyr::select(dataSetIni, -PreDisturb, -year)
-    names(dataSetIni)[!(names(dataSetIni) %in% c('year','site','src'))] <- 
-    paste0(names(dataSetIni)[!(names(dataSetIni) %in% c('year','site','src'))], 'Ini')
-    if (!Nvar %in% names(dataSet)){stop(paste0('Careful variable chosen is not in the data: ', paste(names(dataSet), collapse=' ')))}
+    if (!(Nvar %in% names(dataSet))){stop('Need a variable from dataSet')}
+    if (!('VirtualExperiment' %in% class(dataSet))){stop('Need format first')}
+    dataSetini <- dataSet[preDisturbance==TRUE, ]
+    dataSetini <- dplyr::select(dataSetini, -postThinning, -postDisturbance, -preDisturbance)
+    dataSetini <- dataSetini[, lapply(.SD, mean), by=c('site','src')]
+    names(dataSetini)[!(names(dataSetini) %in% c('year','site','src'))] <-
+        paste0(names(dataSetini)[!(names(dataSetini) %in% c('year','site','src'))], 'ini')
+
     dataSet <- dplyr::mutate(dataSet, Var=dataSet[, ..Nvar][[1]])
-    TT <- dataSet[,.(RecMet=tryCatch(RecoveryMetrics(Var, year, PreDisturb, RecTime=RecTime, FormatOut='str'),
+    TT <- dataSet[,.(RecMet=tryCatch(RecoveryMetrics(Var, year, preDisturbance, RecTime=RecTime, FormatOut='str'),
        error=function(e){return('-1/-1/-1')})), by='site']
     TT <- dplyr::mutate(TT, Theta=as.numeric(do.call(rbind, strsplit(RecMet, '/'))[, 1]),
 	TimeRec=as.numeric(do.call(rbind, strsplit(RecMet, '/'))[,2]),
 	DegRec=as.numeric(do.call(rbind, strsplit(RecMet, '/'))[,3]))
     TT <- dplyr::select(TT, -RecMet)
     TT[TT==-1] <- NA
-    TT <- merge(TT, dataSetIni, by="site")
+    TT <- dplyr::mutate(TT, Nvar=Nvar)
+    TT <- merge(TT, dataSetini, by="site")
     return(TT)
 }
 
@@ -37,14 +40,16 @@ EventResilience <- function(dataSet, Nvar='V_m3', RecTime=20){
 #' @return resilience metrics in a list or a string
 #' @export
 RecoveryMetrics <- function(Var, Year, PreDisturb, RecTime=20, FormatOut='list'){
-    VarBef <- Var[PreDisturb==TRUE] 
+    VarBef <- mean(Var[PreDisturb==TRUE])
+    YearBef <- max(Year[PreDisturb==TRUE])
     if (length(VarBef)==0){stop('No value before perturbation')}
+    if (is.na(VarBef)){stop('Something wrong before perturbation')}
     VarPost <- Var[PreDisturb==FALSE]
     if (length(VarPost)==0){stop('No value after perturbation')}
     Intens <- VarPost[1] / VarBef
     if (Intens >= 1){warning('Perturbation did not reduce the variable')}
     dT <- Year[which(Var >= VarBef & PreDisturb==FALSE)][1] - Year[PreDisturb==TRUE]
-    VardT <- Var[which(Year>=Year[PreDisturb==TRUE] + RecTime)[1]]
+    VardT <- Var[which(Year>=(YearBef + RecTime))][1]
     Out <- data.frame(Theta=Intens/dT, TimeRec=dT, DegRec=VardT/VarBef)
     if (is.na(dT)){Out$Theta <- -99;Out$TimeRec <- -99}
     if (is.na(VardT)){Out$DegRec <- -99}
@@ -116,6 +121,8 @@ format_salem <- function(dataRaw){
     dataSet <- merge(dataSet, HetIndexSp, by=listNameGrouping, all.x=TRUE)
     dataSet <- dplyr::mutate(dataSet, BAinc=c(diff(BA), NA))
     class(dataSet) <- append('VirtualExperiment', class(dataSet))
+    dataSet <- dplyr::mutate(dataSet, preDisturbance=FALSE)
+    dataSet <- dataSet[, preDisturbance:=(year<=min(year) & postDisturbance==FALSE), by=list(site, src)]
     return(dataSet)
 }
 
@@ -130,10 +137,10 @@ plot.VirtualExperiment <- function(dataSet, Nvar='BA'){
     if (!(Nvar %in% names(dataSet))){stop('Need a variable from dataSet')}
     if (!('VirtualExperiment' %in% class(dataSet))){stop('Need format first')}
     dataSet <- dplyr::mutate(dataSet, Var=dataSet[, ..Nvar][[1]])
-    pl <- ggplot2::ggplot(dataSet, ggplot2::aes(x=year, y=Var, col=postDisturbance)) +
-        ggplot2::geom_point() + ggplot2::facet_wrap(~site) +
+    pl <- ggplot2::ggplot(dataSet, ggplot2::aes(x=year, y=Var, col=preDisturbance)) +
+        ggplot2::geom_point() + ggplot2::facet_wrap(~site, scales='free') +
        	ggplot2::geom_line(col='black') +
        	ggplot2::ggtitle(paste0('Variable : ', Nvar, ' / Model : ', dataSet$src[1])) +
-	ggplot2::theme_bw(base_size=20) + ggplot2::ylab('')
+	ggplot2::theme_bw(base_size=16) + ggplot2::ylab('')
     print(pl)
 }
