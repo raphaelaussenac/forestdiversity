@@ -92,7 +92,6 @@ plot.DistanceTab <- function(Tdis, Nk=4){
   Title <- paste('Mingling Phi :', Ming, '\nSize Differentiation Phi:', SizeDiff, '\nWinkemass index : ', Wink, sep='')
   pl <- pl + ggplot2::ggtitle(Title)
   print(pl)
-  return(pl)
 }
 
 #' Compute distance between trees and border
