@@ -95,24 +95,45 @@ format_samsara_Pop <- function(dataRaw){
 #' @return dataSet, data.table, formatted outuput
 #' @export
 format_salem <- function(dataRaw){
+    listNameGrouping <- c('year', 'site', 'src', 'postThinning', 'postDisturbance')
+    if (!('year' %in% names(dataRaw))){stop('Need at least severak years')}
+    if (!('site' %in% names(dataRaw))){dataRaw <- dplyr::mutate(dataRaw, site='NA')}
+    if (!('src' %in% names(dataRaw))){dataRaw <- dplyr::mutate(dataRaw, src='salem')}
+    if (!('postThinning' %in% names(dataRaw))){dataRaw <- dplyr::mutate(dataRaw, postThinning=FALSE)}
+    if (!('postDisturbance' %in% names(dataRaw))){stop('Need logical variable postDisturbance')}
     dataRaw <- data.table::as.data.table(dataRaw)
-#!!!!!
-    dataRaw <- dataRaw[, PreDisturb:=(postThinning=='false' & year==min(year)), by='site']
-    dataRaw$year[dataRaw$PreDisturb==TRUE] <- dataRaw$year[dataRaw$PreDisturb==TRUE] - 10
-#!!!!
+    dataRaw$postThinning <- as.logical(dataRaw$postThinning)
+    dataRaw$postDisturbance <- as.logical(dataRaw$postDisturbance)
     HetIndexSize <- CalcDivIndex(dataRaw, 'D_cm', Inter=10, type="BA")
-    HetIndexSize <- dplyr::select(HetIndexSize, -src)
-    names(HetIndexSize)[!(names(HetIndexSize) %in% c('year', 'site'))] <- 
-	   paste0(names(HetIndexSize)[!(names(HetIndexSize) %in% c('year', 'site'))], 'Size')
+    names(HetIndexSize)[!(names(HetIndexSize) %in% listNameGrouping)] <- 
+	   paste0(names(HetIndexSize)[!(names(HetIndexSize) %in% listNameGrouping)], 'Size')
     HetIndexSp <- CalcDivIndex(dataRaw, 'species', Inter=10, type="BA")
-    HetIndexSp <- dplyr::select(HetIndexSp, -src)
-    names(HetIndexSp)[!(names(HetIndexSp) %in% c('year', 'site'))] <-
-         paste0(names(HetIndexSp)[!(names(HetIndexSp) %in% c('year', 'site'))], 'Sp')
+    names(HetIndexSp)[!(names(HetIndexSp) %in% listNameGrouping)] <-
+         paste0(names(HetIndexSp)[!(names(HetIndexSp) %in% listNameGrouping)], 'Sp')
     dataSet <- dataRaw[, .(V_m3=sum(weight*V_m3), Dg=sqrt(sum(weight*D_cm^2)/sum(weight)),
-	 N=sum(weight), BA=pi*sum(weight*(D_cm/200)^2)), by=list(site, year)]
-    dataSet <- dataSet[, PreDisturb:=(year==min(year)), by='site']
-    dataSet <- merge(dataSet, HetIndexSize, by=c('year', 'site'), all.x=TRUE)
-    dataSet <- merge(dataSet, HetIndexSp, by=c('year', 'site'), all.x=TRUE)
+	 N=sum(weight), BA=pi*sum(weight*(D_cm/200)^2)), by=listNameGrouping]
+    dataSet <- merge(dataSet, HetIndexSize, by=listNameGrouping, all.x=TRUE)
+    dataSet <- merge(dataSet, HetIndexSp, by=listNameGrouping, all.x=TRUE)
     dataSet <- dplyr::mutate(dataSet, BAinc=c(diff(BA), NA))
-    return(dplyr::mutate(dataSet, src='salem'))
+    class(dataSet) <- append('VirtualExperiment', class(dataSet))
+    return(dataSet)
+}
+
+#' Plot virtual experiment
+#'
+#' This function plot a variable from formatted dataSet
+#' @param dataSet, formatted dataset (VirtualExperiment object)
+#' @param Nvar, string, dataSet, variable to be plotted
+#' @return plot Variable chosen
+#' @export
+plot.VirtualExperiment <- function(dataSet, Nvar='BA'){
+    if (!(Nvar %in% names(dataSet))){stop('Need a variable from dataSet')}
+    if (!('VirtualExperiment' %in% class(dataSet))){stop('Need format first')}
+    dataSet <- dplyr::mutate(dataSet, Var=dataSet[, ..Nvar][[1]])
+    pl <- ggplot2::ggplot(dataSet, ggplot2::aes(x=year, y=Var, col=postDisturbance)) +
+        ggplot2::geom_point() + ggplot2::facet_wrap(~site) +
+       	ggplot2::geom_line(col='black') +
+       	ggplot2::ggtitle(paste0('Variable : ', Nvar, ' / Model : ', dataSet$src[1])) +
+	ggplot2::theme_bw(base_size=20) + ggplot2::ylab('')
+    print(pl)
 }
