@@ -158,6 +158,57 @@ The index ranges from 1 (all trees have the same height) to theoretically infini
 ```{r, echo = TRUE}
 StructuralComplexityIndex(PlotExample, coord=c(0,80,0,80))
 ```
+# Recovery Metrics (Resilience)
+
+Three resilience metrics can be computed for a selected variable: Time to recover, Degree of recovery after 20 years and the recovery rate.
+Here is an example with a virtual simulations for two sites using Salem model:
+
+```{r echo=TRUE}
+print(str(VirtualExperiment))
+```
+The dataset must contain at least these variables: 
+
+
+1. "year"
+2. "D_cm"
+3. "species"
+4. "postDisturbance"
+
+Variables "site" and "weight" will be filled automatically if they are not in the dataset.
+The dataset can be a distribution ( = each line represent a size and a species) or trees ( = each line is a tree with a species and dbh associated).
+The variable postDisturbance is crucial as it is the only intel we have on when the perturbation is applied.
+The value of postDisturbance (true / false) is specific for each year: each "normal" year, its value is false.
+When there is a disturbance, its values are false (same year but before disturbance) and true (same year but after disturbance).
+
+We first need to 'format' Salem outputs:
+```{r echo=TRUE}
+DF <- format_salem(dataRaw=VirtualExperiment)
+print(head(DF))
+plot(DF, Nvar='V_m3')
+```
+This function will mostly compute the heterogeneity index for each year and site.
+It creates a new variable called 'preDisturbance': it equals TRUE for every year before the disturbance.
+One can plot the object build by format_salem using plot and the name of the variable to be plotted.
+
+The function EventResilience can then be used to compute the recovery metrics.
+I will compute an initial state which is meant over all the years classified as preDisturbance==TRUE, that is all the years before the Event.
+
+```{r echo=TRUE}
+E <- EventResilience(DF, Nvar='V_m3', RecTime=20)
+print(head(E))
+```
+
+Some notation explanation: Theta is the recovery rate, TimeRec the time to recovery and DegRec the degree of recovery after X years (the argument RecTime, here 20).
+If TimeRec and Theta are -99, it means the system did not reach recovery.
+If any value is NA, it means that the metric could not be calculated and data should be inspected.
+The function EventResilience also returns the values of the population before disturbance (with the suffix "ini").
+
+
+
+
+
+
+
 
 
 
