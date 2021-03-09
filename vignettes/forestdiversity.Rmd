@@ -5,8 +5,8 @@ vignette: >
   %\VignetteIndexEntry{forestdiversity}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
-fig_width: 12 
-fig_height: 14 
+fig_width: 6 
+fig_height: 6 
 ---
 
 
