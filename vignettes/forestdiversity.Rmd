@@ -120,7 +120,6 @@ Pommerening et al, 2017 presented their results using 3 neighboors, in IMaestro 
 The size differentiation index (Pommerening et al, 2017) is the "mean of the ratio of smaller and larger plant sizes u of the k nearest neighbours subtracted from one."
 For each tree i, we select the k closest neighboors (by default 4) and compute $T_i=\frac{1}{k}\sum_{j=1}^k \frac{min(u_i, u_j)}{max(u_i, u_j)}$
 Here the size u is taken as the DBH.
-Contrary to minglin index, the size differentiation index is computed for only only number of neighboors.
 
 ```{r, echo = TRUE}
 Compute_Size_Diff(Td, Nk=4, EdgeCorrection="NN1")
