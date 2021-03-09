@@ -42,13 +42,15 @@ CalcDivIndex <- function(dataSet, Nvar = 'D_cm', Inter = 10, type = 'BA'){
     if (!('year' %in% names(dataSet))){dataSet <- dplyr::mutate(dataSet, year='NA')}
     if (!('site' %in% names(dataSet))){dataSet <- dplyr::mutate(dataSet, site='NA')}
     if (!('weight' %in% names(dataSet))){dataSet <- dplyr::mutate(dataSet, weight=1)}
-    if (!('src' %in% names(dataSet))){dataSet <- dplyr::mutate(dataSet, src='1')}
+    if (!('src' %in% names(dataSet))){dataSet <- dplyr::mutate(dataSet, src='NA')}
+    if (!('postThinning' %in% names(dataSet))){dataSet <- dplyr::mutate(dataSet, postThinning=FALSE)}
+    if (!('postDisturbance' %in% names(dataSet))){dataSet <- dplyr::mutate(dataSet, postDisturbance=FALSE)}
     dataSet <- dplyr::mutate(dataSet, BA=pi*(D_cm/200)^2*weight)
     dataSet <- data.table::as.data.table(dataSet)
     if (type=='BA'){
         if (Nvar!="species"){
 	     DivIndex <- dataSet[, .(Gini=GiniPop(Var, BA, weight),
-                 H=HillPop(Class, BA, OutFormat='str')), by=list(year, site, src)]
+                 H=HillPop(Class, BA, OutFormat='str')), by=list(year, site, src, postThinning, postDisturbance)]
              DivIndex <- dplyr::mutate(DivIndex, Sh=as.numeric(do.call(rbind, strsplit(H, '/'))[, 1]),
                         GS=as.numeric(do.call(rbind, strsplit(H, '/'))[,2]),
                         Simp=as.numeric(do.call(rbind, strsplit(H, '/'))[,3]),
@@ -56,7 +58,7 @@ CalcDivIndex <- function(dataSet, Nvar = 'D_cm', Inter = 10, type = 'BA'){
 	     DivIndex <- dplyr::select(DivIndex, -H)
 
 	}else{
-             DivIndex <- dataSet[, .(H=HillPop(Class, BA, OutFormat='str')), by=list(year, site, src)]
+             DivIndex <- dataSet[, .(H=HillPop(Class, BA, OutFormat='str')), by=list(year, site, src, postThinning, postDisturbance)]
              DivIndex <- dplyr::mutate(DivIndex, Sh=as.numeric(do.call(rbind, strsplit(H, '/'))[, 1]),
                         GS=as.numeric(do.call(rbind, strsplit(H, '/'))[,2]),
                         Simp=as.numeric(do.call(rbind, strsplit(H, '/'))[,3]),
@@ -66,14 +68,14 @@ CalcDivIndex <- function(dataSet, Nvar = 'D_cm', Inter = 10, type = 'BA'){
     }else{
         if (Nvar!='species'){
 	     DivIndex <- dataSet[, .(Gini=GiniPop(Var, BA, weight),
-                 H=HillPop(Class, weight, OutFormat='str')), by=list(year, site, src)]
+                 H=HillPop(Class, weight, OutFormat='str')), by=list(year, site, src, postThinning, postDisturbance)]
              DivIndex <- dplyr::mutate(DivIndex, Sh=as.numeric(do.call(rbind, strsplit(H, '/'))[, 1]),
                         GS=as.numeric(do.call(rbind, strsplit(H, '/'))[,2]),
                         Simp=as.numeric(do.call(rbind, strsplit(H, '/'))[,3]),
                         Nclass=as.numeric(do.call(rbind, strsplit(H, '/'))[,4]))
 	     DivIndex <- dplyr::select(DivIndex, -H)
 	}else{
-             DivIndex <- dataSet[, .(H=HillPop(Class, weight, OutFormat='str')), by=list(year, site, src)]
+             DivIndex <- dataSet[, .(H=HillPop(Class, weight, OutFormat='str')), by=list(year, site, src, postThinning, postDisturbance)]
              DivIndex <- dplyr::mutate(DivIndex, Sh=as.numeric(do.call(rbind, strsplit(H, '/'))[, 1]),
                         GS=as.numeric(do.call(rbind, strsplit(H, '/'))[,2]),
                         Simp=as.numeric(do.call(rbind, strsplit(H, '/'))[,3]),
