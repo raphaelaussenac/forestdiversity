@@ -324,10 +324,14 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <li>Gini Simpson Index</li>
 <li>Simpson Index</li>
 </ol>
-<p>These 3 indices, also called Hill numbers, are computed based on abundances. If we <span class="math inline">\(p_i\)</span> the proportion of each class and N the total number of classes:</p>
-<p><span class="math inline">\(Shannon = \sum_{i=1}^{i=N}(p_i * log(p_i))\)</span></p>
-<p><span class="math inline">\(Simpson = \sum_{i=1}^{i=N}(p_i^2)\)</span></p>
-<p><span class="math inline">\(GiniSimpson = 1 - Simpson\)</span></p>
+<p>These 4 indices, are computed based on abundances. If we <span class="math inline">\(p_i\)</span> the proportion of each class and N the total number of classes:</p>
+<ol style="list-style-type: decimal">
+<li><p><span class="math inline">\(Nclass = N\)</span> (=<span class="math inline">\(^qD\)</span> with <span class="math inline">\(q = 0\)</span>)</p></li>
+<li><p><span class="math inline">\(Shannon = \sum_{i=1}^{i=N}( - p_i * log(p_i))\)</span> (=log(<span class="math inline">\(^qD\)</span>) with q -&gt;1)</p></li>
+<li><p><span class="math inline">\(Simpson = \sum_{i=1}^{i=N}(p_i^2)\)</span> (=<span class="math inline">\(\dfrac{1}{^qD}\)</span> with q = 2)</p></li>
+<li><p><span class="math inline">\(GiniSimpson = 1 - Simpson\)</span></p></li>
+</ol>
+<p><span class="math inline">\(^qD\)</span> being the Hill number.</p>
 <p>Abundances can be expressed as tree density (i.e. the number of trees in each species/size class) or as the proportion of basal area (the proportion of total basal area within each species/size class). For example if we want to compute hill number based on tree density on species, command would be:</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="kw">CalcDivIndex</span>(PlotExample, <span class="dt">Nvar =</span> <span class="st">'species'</span>, <span class="dt">type =</span> <span class="st">'Density'</span>)</a></code></pre></div>
 <pre><code>##    year   site src postThinning postDisturbance      Sh        GS      Simp
