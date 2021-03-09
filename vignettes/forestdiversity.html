@@ -387,7 +387,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 </div>
 <div id="the-size-differentiation-index" class="section level2">
 <h2>The Size Differentiation index</h2>
-<p>The size differentiation index (Pommerening et al, 2017) is the “mean of the ratio of smaller and larger plant sizes u of the k nearest neighbours subtracted from one.” For each tree i, we select the k closest neighboors (by default 4) and compute <span class="math inline">\(T_i=\frac{1}{k}\sum_{j=1}^k \frac{min(u_i, u_j)}{max(u_i, u_j)}\)</span> Here the size u is taken as the DBH. Contrary to minglin index, the size differentiation index is computed for only only number of neighboors.</p>
+<p>The size differentiation index (Pommerening et al, 2017) is the “mean of the ratio of smaller and larger plant sizes u of the k nearest neighbours subtracted from one.” For each tree i, we select the k closest neighboors (by default 4) and compute <span class="math inline">\(T_i=\frac{1}{k}\sum_{j=1}^k \frac{min(u_i, u_j)}{max(u_i, u_j)}\)</span> Here the size u is taken as the DBH.</p>
 <div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" data-line-number="1"><span class="kw">Compute_Size_Diff</span>(Td, <span class="dt">Nk=</span><span class="dv">4</span>, <span class="dt">EdgeCorrection=</span><span class="st">&quot;NN1&quot;</span>)</a></code></pre></div>
 <pre><code>##           T      ET        phi
 ## 1 0.3892921 0.36466 -0.0675482</code></pre>
