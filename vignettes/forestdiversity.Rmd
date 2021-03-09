@@ -31,14 +31,18 @@ For both cases, the indices computed are
 2. Gini Simpson Index
 3. Simpson Index
 
-These 3 indices, also called Hill numbers, are computed based on abundances.
+These 4 indices, are computed based on abundances.
 If we $p_i$ the proportion of each class and N the total number of classes:
 
-$Shannon = \sum_{i=1}^{i=N}(p_i * log(p_i))$
+1. $Nclass = N$ (=$^qD$ with $q = 0$)
 
-$Simpson = \sum_{i=1}^{i=N}(p_i^2)$
+2. $Shannon = \sum_{i=1}^{i=N}( - p_i * log(p_i))$ (=log($^qD$) with q ->1)
 
-$GiniSimpson = 1 - Simpson$ 
+3. $Simpson = \sum_{i=1}^{i=N}(p_i^2)$ (=$\dfrac{1}{^qD}$ with q = 2)
+
+4. $GiniSimpson = 1 - Simpson$ 
+
+$^qD$ being the Hill number.
 
 Abundances can be expressed as tree density (i.e. the number of trees in each species/size class) or as the proportion of basal area (the proportion of total basal area within each species/size class).
 For example if we want to compute hill number based on tree density on species, command would be:
