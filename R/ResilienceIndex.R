@@ -50,7 +50,9 @@ RecoveryMetrics <- function(Var, Year, PreDisturb, RecTime=20, FormatOut='list')
     if (Intens >= 1){warning('Perturbation did not reduce the variable')}
     dT <- Year[which(Var >= VarBef & PreDisturb==FALSE)][1] - Year[PreDisturb==TRUE]
     VardT <- Var[which(Year>=(YearBef + RecTime))][1]
-    Out <- data.frame(Theta=Intens/dT, TimeRec=dT, DegRec=VardT/VarBef)
+    Out <- data.frame(Theta=Intens/dT, TimeRec=dT, DegRec=1-(VardT-VarBef)/(VarPost[1]-VarBef))
+    Out$DegRec[Out$DegRec>1] <- 1
+    AdT <- VarBef * RecTime
     if (is.na(dT)){Out$Theta <- -99;Out$TimeRec <- -99}
     if (is.na(VardT)){Out$DegRec <- -99}
     if (FormatOut=='list'){
