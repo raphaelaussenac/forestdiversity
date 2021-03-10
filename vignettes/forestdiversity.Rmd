@@ -19,7 +19,6 @@ devtools::install_gitlab('arnaud.guyennon/forestdiversity')
 
 ```{r setup, include = FALSE}
 require(forestdiversity)
-DF <- PlotExample
 knitr::opts_chunk$set(fig.width=12, fig.height=12)
 ```
 
@@ -101,15 +100,15 @@ GiniPop(Size=PlotExample$D_cm, BA=PlotExample$D_cm^2, PLOT=TRUE)
 
 # Spatial metrics
 
-We have a dataset named DF with at least trees species, DBH, and location in X / Y:
+We have a dataset named named PlotExample with at least trees species, DBH, and location in X / Y:
 
-```{r, echo = FALSE}
-print(head(DF))
+```{r, echo = TRUE}
+print(head(PlotExample))
 ```
 We first need to build a TabDist object using the TabDist function:
 
 ```{r, echo = TRUE}
-Td <- TabDist(DF, coord=c(0, 80, 0, 80), shape='quadrat', Nselec=10)
+Td <- TabDist(PlotExample, coord=c(0, 80, 0, 80), shape='quadrat', Nselec=10)
 ```
 
 The shape argument give the shape of the plot ('quadrat' or 'circular'), by default it is 'quadrat'
@@ -154,7 +153,7 @@ Here the size u is taken as the DBH.
 Compute_Size_Diff(Td, Nk=4, EdgeCorrection="NN1")
 ```
 
-As in the mingling index, we also compute the expected size differentiation, which is independent of the number of neighboors, and phi as $1 - \frac{mk}{Em}$.
+As in the mingling index, we also compute the expected size differentiation, which is independent of the number of neighboors, and phi as $1 - \frac{T}{ET}$.
 
 
 ## The Winkelmass index
