@@ -12,16 +12,16 @@
 CalcDivIndex <- function(dataSet, Nvar = 'D_cm', ClassInter = 10, ClassIni=7.5, type = 'BA', Out='HillNb'){
     if (!(Out %in% c('HillNb', 'Entropy'))){stop("Out should be 'HillNb' or 'Entropy'")}
     dataSet <- dplyr::mutate(dataSet, Var=dataSet[[Nvar]])
-    if (Nvar!='species' & min(dataSet$Var) < ClassIni){
+    if (Nvar!='species'){
+            if(min(dataSet$Var) < ClassIni){
 	    warning('Careful some trees have Size below ClassIni, they will be discarded')
 	    dataSet <- dplyr::filter(dataSet, Var>=ClassIni)
-    }
-    if (Nvar=='species'){
-	    dataSet <- dplyr::mutate(dataSet, Class=as.character(Var))
+	}
+        ClassInterval <- seq(ClassIni, max(dataSet$Var) + 2* ClassInter, by=ClassInter) 
+        ClassName <- ClassInterval + mean(diff(ClassInterval)) / 2
+        dataSet <- dplyr::mutate(dataSet, Class=ClassName[findInterval(Var, ClassInterval)])
     }else{
-	    ClassInterval <- seq(ClassIni, max(dataSet$Var) + 2* ClassInter, by=ClassInter) 
-	    ClassName <- ClassInterval + mean(diff(ClassInterval)) / 2
-	    dataSet <- dplyr::mutate(dataSet, Class=ClassName[findInterval(Var, ClassInterval)])
+        dataSet <- dplyr::mutate(dataSet, Class=as.character(Var))
     }
     if (is.null(dataSet[["Var"]])){stop('Need to choose a correct variable first')}
     if (!('site' %in% names(dataSet))){dataSet <- dplyr::mutate(dataSet, site='NA')}
@@ -40,16 +40,16 @@ CalcDivIndex <- function(dataSet, Nvar = 'D_cm', ClassInter = 10, ClassIni=7.5, 
                  H=DivPop(Class, BA, OutFormat='str', Out=Out)), by=listNameGrouping]
              DivIndex <- dplyr::mutate(DivIndex, 
                         Nclass=as.numeric(do.call(rbind, strsplit(H, '/'))[,1]),
-                        Sh=as.numeric(do.call(rbind, strsplit(H, '/'))[, 2]),
-                        Simp=as.numeric(do.call(rbind, strsplit(H, '/'))[, 3]))
+                        Shannon=as.numeric(do.call(rbind, strsplit(H, '/'))[, 2]),
+                        Simpson=as.numeric(do.call(rbind, strsplit(H, '/'))[, 3]))
 	     DivIndex <- dplyr::select(DivIndex, -H)
 
 	}else{
              DivIndex <- dataSet[, .(H=DivPop(Class, BA, OutFormat='str', Out=Out)), by=listNameGrouping]
              DivIndex <- dplyr::mutate(DivIndex,  
                         Nclass=as.numeric(do.call(rbind, strsplit(H, '/'))[,1]),
-                        Sh=as.numeric(do.call(rbind, strsplit(H, '/'))[, 2]),
-                        Simp=as.numeric(do.call(rbind, strsplit(H, '/'))[, 3]))
+                        Shannon=as.numeric(do.call(rbind, strsplit(H, '/'))[, 2]),
+                        Simpson=as.numeric(do.call(rbind, strsplit(H, '/'))[, 3]))
 	     DivIndex <- dplyr::select(DivIndex, -H)
 	}
     }else{
@@ -58,21 +58,21 @@ CalcDivIndex <- function(dataSet, Nvar = 'D_cm', ClassInter = 10, ClassIni=7.5, 
                  H=DivPop(Class, weight, OutFormat='str', Out=Out)), by=listNameGrouping]
              DivIndex <- dplyr::mutate(DivIndex,
                         Nclass=as.numeric(do.call(rbind, strsplit(H, '/'))[,1]),
-                        Sh=as.numeric(do.call(rbind, strsplit(H, '/'))[, 2]),
-                        Simp=as.numeric(do.call(rbind, strsplit(H, '/'))[, 3]))
+                        Shannon=as.numeric(do.call(rbind, strsplit(H, '/'))[, 2]),
+                        Simpson=as.numeric(do.call(rbind, strsplit(H, '/'))[, 3]))
 	     DivIndex <- dplyr::select(DivIndex, -H)
 	}else{
              DivIndex <- dataSet[, .(H=DivPop(Class, weight, OutFormat='str', Out=Out)), by=listNameGrouping]
              DivIndex <- dplyr::mutate(DivIndex,
                         Nclass=as.numeric(do.call(rbind, strsplit(H, '/'))[,1]),
-                        Sh=as.numeric(do.call(rbind, strsplit(H, '/'))[, 2]),
-                        Simp=as.numeric(do.call(rbind, strsplit(H, '/'))[, 3]))
+                        Shannon=as.numeric(do.call(rbind, strsplit(H, '/'))[, 2]),
+                        Simpson=as.numeric(do.call(rbind, strsplit(H, '/'))[, 3]))
 	     DivIndex <- dplyr::select(DivIndex, -H)
 	}
     }
     if (Out=='HillNb'){
-        names(DivIndex)[which(names(DivIndex)=="Sh")] <- "H1"
-        names(DivIndex)[which(names(DivIndex)=="Simp")] <- "H2"
+        names(DivIndex)[which(names(DivIndex)=="Shannon")] <- "H1"
+        names(DivIndex)[which(names(DivIndex)=="Simpson")] <- "H2"
     }
     return(DivIndex)
 }
@@ -130,7 +130,7 @@ GiniPop <- function(Size, BA, weight = 1, PLOT=FALSE){
 #' @export
 HillPop <- function(Class, weight, OutFormat='list'){
     In <- EntropyPop(Class, weight, OutFormat='list')
-    Out <- data.frame(Nclass=In$Nclass, H1=exp(In$Sh), H2=1/(In$Simp))
+    Out <- data.frame(Nclass=In$Nclass, H1=exp(In$Shannon), H2=1/(In$Simpson))
     if (OutFormat=='list'){
         return(Out)
     }else if (OutFormat=='str'){
@@ -155,11 +155,11 @@ EntropyPop <- function(Class, weight, OutFormat='list'){
     P <- dplyr::summarise(P, p = sum(weight))
     P <- dplyr::ungroup(P)
     P <- dplyr::mutate(P, p=p/sum(p))
-    Out <- data.frame(Sh=-sum(P$p*log(P$p)), Simp=sum(P$p^2), Nclass=dim(P)[1])
+    Out <- data.frame(Shannon=-sum(P$p*log(P$p)), Simpson=sum(P$p^2), Nclass=dim(P)[1])
     if (OutFormat=='list'){
         return(Out)
     }else if (OutFormat=='str'){
-        Out <- paste(Out$Nclass, Out$Sh, Out$Simp, sep='/') 
+        Out <- paste(Out$Nclass, Out$Shannon, Out$Simpson, sep='/') 
         return(Out)
     }else{
 	    stop('Outformat must be list or str')
