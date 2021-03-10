@@ -7,10 +7,9 @@
 #' @param data.frame DF: dataset
 #' @param shape str: shape of the plot (quadrat or circular)
 #' @param coord vect: vector of the coordinates of the plot : (xmin, xmx, ymin, ymax) or (radius)
-#' @param numeric Inter: Interval for size classes (10 cm by default)
 #' @return A Plot object
 #' @export
-createPlot <- function(DF, shape="quadrat", coord, Inter=10){
+createPlot <- function(DF, shape="quadrat", coord){
     if (("X" %in% colnames(DF) + "Y" %in% colnames(DF) +
 	"species" %in% colnames(DF) + 'D_cm' %in% colnames(DF))<3){
           stop('Need coordinates with names X and Y, and species, and DBH (D_cm)')
@@ -20,10 +19,10 @@ createPlot <- function(DF, shape="quadrat", coord, Inter=10){
     }
     if (dim(DF)[1]==0){stop('Empty data')}
     if (shape=="quadrat" & length(coord)!=4){stop('Need coord=(xmin, xmax, ymin, ymax) for quadrats')}
-    if (shape=="circular" & length(coord)!=4){stop('Need coord=R for circular plots')}
+    if (shape=="circular" & length(coord)!=1){stop('Need coord=R for circular plots')}
     if (!(shape %in% c('quadrat','circular'))){stop('shape must be quadrat or circular')}
     if (!('weight' %in% names(DF))){DF <- dplyr::mutate(DF, weight=1)}
-    DF <- dplyr::mutate(DF, ClassSize=(1+floor((D_cm-Inter/2)/Inter))*Inter) 
+    DF <- dplyr::mutate(DF, ClassSize=(1+floor((D_cm-5)/10))*10) 
 ## Is tree within the coordinates ?
     DF <- dplyr::mutate(DF, InCoord=(X >= coord[1] & X<=coord[2] & Y>=coord[3] & Y<=coord[4]))
     Plot <- list(DF=DF, shape=shape, coord=coord)
@@ -38,11 +37,10 @@ createPlot <- function(DF, shape="quadrat", coord, Inter=10){
 #' @param shape str: shape of the plot (quadrat or circular)
 #' @param coord vect: vector of the coordinates of the plot : (xmin, xmx, ymin, ymax) or (radius)
 #' @param Nselec int: number of neighboor retained, 10 by default, 10 is the max value
-#' @param numeric Inter: Interval for size classes (10 cm by default)
 #' @return A TabDis object
 #' @export
-TabDist <- function(DF, shape="quadrat", coord, Nselec = 10, Inter=10){
-    Plot <- createPlot(DF, shape=shape, coord=coord, Inter=Inter)
+TabDist <- function(DF, shape="quadrat", coord, Nselec = 10){
+    Plot <- createPlot(DF, shape=shape, coord=coord)
     Plot <- DisToBorder(Plot)
     DF <- Plot$DF
     N <- dim(DF)[1]
