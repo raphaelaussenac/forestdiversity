@@ -4,10 +4,22 @@
 \alias{format_salem}
 \title{Format Salem dataset}
 \usage{
-format_salem(dataRaw)
+format_salem(
+  dataRaw,
+  ClassInter = 10,
+  ClassIni = 7.5,
+  Out = "HillNb",
+  type = "BA"
+)
 }
 \arguments{
 \item{dataRaw, }{data.frame, dataSet containing the simulation output of Salem}
+
+\item{ClassInter, }{num, parameter used to compute diversity indices}
+
+\item{ClassIni, }{num, parameter used to compute diversity indices}
+
+\item{type, }{str, parameter used to compute diversity indices}
 }
 \value{
 dataSet, data.table, formatted outuput
