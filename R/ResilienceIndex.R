@@ -15,7 +15,6 @@ EventResilience <- function(dataSet, Nvar='V_m3', RecTime=20){
     dataSetini <- dataSetini[, lapply(.SD, mean), by=c('site','src')]
     names(dataSetini)[!(names(dataSetini) %in% c('year','site','src'))] <-
         paste0(names(dataSetini)[!(names(dataSetini) %in% c('year','site','src'))], 'ini')
-
     dataSet <- dplyr::mutate(dataSet, Var=dataSet[, ..Nvar][[1]])
     TT <- dataSet[,.(RecMet=tryCatch(RecoveryMetrics(Var, year, preDisturbance, RecTime=RecTime, FormatOut='str'),
        error=function(e){return('-1/-1/-1')})), by='site']
@@ -50,16 +49,15 @@ RecoveryMetrics <- function(Var, Year, PreDisturb, RecTime=20, FormatOut='list')
     if (length(VarPost)==0){stop('No value after perturbation')}
     Intens <- VarPost[1] / VarBef
     if (Intens >= 1){warning('Perturbation did not reduce the variable')}
-    dT <- Year[which(Var >= VarBef & PreDisturb==FALSE)][1] - Year[PreDisturb==TRUE]
-    idT <- which(Year>=(YearBef + RecTime - 1))[1]
+    dT <- Year[which(Var >= VarBef & PreDisturb==FALSE)][1] - YearBef
+    idT <- which(Year>=(YearBef + RecTime))[1]
     VardT <- Var[idT]
-    AdT <- VarBef * RecTime
+    AdT <- VarBef * dT
     NCI <- sum(abs(Var[1:idT][PreDisturb[1:idT]==FALSE]-VarBef))
     Out <- data.frame(Theta=Intens/dT, TimeRec=dT,
         DegRec=1-(VardT-VarBef)/(VarPost[1]-VarBef),
-       	Phi1=1 - NCI/AdT, Phi2=(VarPost[1]-VarBef)*RecTime/NCI)
+       	Phi1=1 - NCI/AdT, Phi2=(VarBef - VarPost[1])*dT/NCI)
     Out$DegRec[Out$DegRec>1] <- 1
-
     if (is.na(dT)){Out$Theta <- -99;Out$TimeRec <- -99}
     if (is.na(VardT)){Out$DegRec <- -99}
     if (FormatOut=='list'){
@@ -145,14 +143,51 @@ format_salem <- function(dataRaw, ClassInter=10, ClassIni=7.5, Out='HillNb', typ
 #' @param Nvar, string, dataSet, variable to be plotted
 #' @return plot Variable chosen
 #' @export
-plot.VirtualExperiment <- function(dataSet, Nvar='BA'){
+plot.VirtualExperiment <- function(dataSet, Nvar='BA', RecTime=20){
     if (!(Nvar %in% names(dataSet))){stop('Need a variable from dataSet')}
     if (!('VirtualExperiment' %in% class(dataSet))){stop('Need format first')}
     dataSet <- dplyr::mutate(dataSet, Var=dataSet[, ..Nvar][[1]])
-    pl <- ggplot2::ggplot(dataSet, ggplot2::aes(x=year, y=Var, col=preDisturbance)) +
-        ggplot2::geom_point() + ggplot2::facet_wrap(~site, scales='free') +
+    YearBef <- max(dataSet$year[dataSet$preDisturb==TRUE])
+    VarBef <- mean(dataSet$Var[dataSet$preDisturbance==TRUE])
+    Varmin <- min(dataSet$Var)
+    Pd <- dataSet$Var[dataSet$year==min(dataSet$year[dataSet$preDisturb==FALSE]) & dataSet$preDisturb==FALSE]
+    Td <- min(dataSet$year[dataSet$preDisturb==FALSE])
+    Px <- dataSet$Var[dataSet$year==Td + RecTime]
+    E <- EventResilience(dataSet, Nvar=Nvar, RecTime=RecTime)
+    print(E$Phi1)
+    print(E$Phi2)
+    pl <- ggplot2::ggplot(dataSet, ggplot2::aes(x=year, y=Var)) +
+       	ggplot2::ggtitle(paste0('Variable : ', Nvar, ' / Model : ', dataSet$src[1],
+		'  Phi1 : ', round(E$Phi1, digits=2), '  Phi2 : ', round(E$Phi2,digits=2))) +
+	ggplot2::theme_bw(base_size=16) + ggplot2::ylab('') +
+	geom_hline(aes(yintercept=VarBef), linetype=2,col='blue') +
+	geom_vline(aes(xintercept=E$TimeRec + YearBef), linetype=2) +
+	geom_vline(aes(xintercept=YearBef + RecTime), linetype=2) +
+	geom_text(aes(y=0, x=1+YearBef + E$TimeRec, label='Tf'), size=10, col='black') +
+	geom_text(aes(y=0, x=1+YearBef + RecTime, label='Tx'), size=10, col='black') +
+	geom_text(aes(y=VarBef*1.05, x=YearBef + 1, label='Y0=Yd'), size=10, col='blue') +
+	geom_text(aes(y=Pd*0.95, x=Td, label='Pd'), size=10, col='blue') +
+	geom_text(aes(y=0, x=Td, label='Td'), size=10, col='black') +
+	geom_text(aes(y=Px*0.95, x=1+YearBef+RecTime, label='Px'), size=10, col='black') +
+	geom_vline(aes(xintercept=Td), linetype=2, col='black') +
+	coord_cartesian(ylim=c(0, max(dataSet$Var))) +
+	ggplot2::geom_point(ggplot2::aes(col=preDisturbance)) + ggplot2::facet_wrap(~site, scales='free') +
        	ggplot2::geom_line(col='black') +
-       	ggplot2::ggtitle(paste0('Variable : ', Nvar, ' / Model : ', dataSet$src[1])) +
-	ggplot2::theme_bw(base_size=16) + ggplot2::ylab('')
+	geom_ribbon(data=dplyr::filter(dataSet, year<=(YearBef + RecTime)), aes(ymin=VarBef, ymax=Var), alpha=0.4) +
+	geom_ribbon(data=dplyr::filter(dataSet, year<=(YearBef+E$TimeRec)), aes(ymin=0, ymax=VarBef), alpha=0.2, fill='red')
     print(pl)
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
