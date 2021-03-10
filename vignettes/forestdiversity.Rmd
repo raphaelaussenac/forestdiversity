@@ -23,54 +23,75 @@ DF <- PlotExample
 knitr::opts_chunk$set(fig.width=12, fig.height=12)
 ```
 
-# Diversity indices
+# Diversity/geterogeneity indices
 Diversity indices can be calculated using whether species or size classes.
-For both cases, the indices computed are 
 
-1. Shannon Index
-2. Gini Simpson Index
+Two different kind of indices can be computed:
+
+1. Hill Numbers
+2. Entropy based indices
+
+## Computation of Hill numbers
+
+1. H0 = Number of class (Richness)
+2. H1
+3. H2
+
+## Computation of entropy based indices
+
+Indices computed are 
+
+1. Number of classes (Richness)
+2. Shannon Index
 3. Simpson Index
 
-These 4 indices, are computed based on abundances.
+When the variable we used to compute indices is not species, we can also compute the Gini Index.
+Here the Gini index is systematically based on proportion of basal area.
+
+## Details on indices
+
 If we $p_i$ the proportion of each class and N the total number of classes:
 
-1. $Nclass = N$ (=$^qD$ with $q = 0$)
+1. $Nclass = N$ (=H0)
 
-2. $Shannon = \sum_{i=1}^{i=N}( - p_i * log(p_i))$ (=log($^qD$) with q ->1)
+2. $Shannon = \sum_{i=1}^{i=N}( - p_i * log(p_i))$ (=log(H1))
 
-3. $Simpson = \sum_{i=1}^{i=N}(p_i^2)$ (=$\dfrac{1}{^qD}$ with q = 2)
+3. $Simpson = \sum_{i=1}^{i=N}(p_i^2)$ (=$\dfrac{1}{H2}$)
 
-4. $GiniSimpson = 1 - Simpson$ 
+The proportion $p_i$ can be calculated on proportion of trees (i.e. the proportion of trees in each species/size class) or as the proportion of basal area (the proportion of total basal area within each species/size class).
 
-$^qD$ being the Hill number.
+## Example
 
-Abundances can be expressed as tree density (i.e. the number of trees in each species/size class) or as the proportion of basal area (the proportion of total basal area within each species/size class).
-For example if we want to compute hill number based on tree density on species, command would be:
+If we want to compute Hill numbers on species and based on density:
 
 ```{r, echo = TRUE}
-CalcDivIndex(PlotExample, Nvar = 'species', type = 'Density')
+CalcDivIndex(PlotExample, Nvar = 'species', type = 'Density', Out='HillNb')
 ```
-By default, the function CalcDivIndex compute the diversity indices for each year/site/src within the dataset.
-If no year/site/src is filled within the dataset, they will be set to default values.
+
+N.B. : if present, the function CalcDivIndex compute the diversity indices for each year/site/src/postThinning/postDisturbance within the dataset. If no weight is present in the dataset, they will be set to 1.
 
 To compute diversity indices based on basal area: 
 
 ```{r, echo = TRUE}
-CalcDivIndex(PlotExample, Nvar = 'species', type = 'BA')
+CalcDivIndex(PlotExample, Nvar = 'species', type = 'BA', Out='HillNb')
+```
+
+To compute entropy based indices on basal area: 
+
+```{r, echo = TRUE}
+CalcDivIndex(PlotExample, Nvar = 'species', type = 'BA', Out='Entropy')
 ```
 
 Both previous calculations can be performed on size rather than on species.
-In that case size must be divided into classes using the parameter Inter (size of each classes in the same unit as the size variable) in CalcDivIndex.
+In that case size must be divided into classes using the two parameter:  ClassInter (size of each classes in the same unit as the size variable) and ClassIni (minimum size of  the first class).
 
 ```{r, echo = TRUE}
-CalcDivIndex(PlotExample, Nvar = 'D_cm', Inter=10, type = 'Density')
+CalcDivIndex(PlotExample, Nvar = 'D_cm', ClassInter=10, ClassIni=5, type = 'Density', Out='HillNb')
 ```
 ```{r, echo = TRUE}
-CalcDivIndex(PlotExample, Nvar = 'D_cm', Inter=10, type = 'BA')
+CalcDivIndex(PlotExample, Nvar = 'D_cm', ClassInter=10, ClassIni=5, type = 'BA', Out='HillNb')
 ```
 
-In these cases, the Gini index is also added to the output.
-Here the Gini index is based on basal area.
 The function used in CalcDivIndex can be used independently.
 
 ```
@@ -88,12 +109,16 @@ print(head(DF))
 We first need to build a TabDist object using the TabDist function:
 
 ```{r, echo = TRUE}
-Td <- TabDist(DF, coord=c(0, 80, 0, 80), shape='quadrat', Nselec=10, Inter=10)
+Td <- TabDist(DF, coord=c(0, 80, 0, 80), shape='quadrat', Nselec=10)
 ```
-The coord argument gives the dimension of the plot (xmin, xmax, ymin, ymax)
+
 The shape argument give the shape of the plot ('quadrat' or 'circular'), by default it is 'quadrat'
+The coord argument gives the dimension of the plot:
+
+1. if shape=='quadrat' : coord=(xmin, xmax, ymin, ymax) in meters
+2. if shape=='circular : coord=radius (in meter)
+
 The Nselec argument give the number of neighboors we should consider for each tree, by default it is 10 and should be left at this value
-The Inter argument give the class size dimension (in cm) wich will be used to compute size classes
 
 We can plot the TabDis object 
 ```{r, echo = TRUE}
