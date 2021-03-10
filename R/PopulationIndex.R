@@ -2,20 +2,28 @@
 #'
 #' This function compute the Gini index and Hill numbers for a population 
 #' @param dataSet, data.frame of population, can gather multiple sites, years and sources
-#' @param Type string, define wether to compute proportion in terms of frequencies or relative basal area
+#' @param N_var string, name of the variable used to compute indices
+#' @param ClassInter num, Class size (same units as the variable chosen)
+#' @param ClassIni num, min dbh of the first class
+#' @param type string, define wether to compute proportion in terms of frequencies or relative basal area
+#' @param Out string, define wether to compute Hillnb or entropy based indices ('HillNb' or 'Entropy'
 #' @return A data.frame containing diversity metrics for each site/year/source
 #' @export
-CalcDivIndex <- function(dataSet, Nvar = 'D_cm', Inter = 10, type = 'BA', Out='HillNb'){
-	if (!(Out %in% c('HillNb', 'Entropy'))){stop("Out should be 'HillNb' or 'Entropy'")}
+CalcDivIndex <- function(dataSet, Nvar = 'D_cm', ClassInter = 10, ClassIni=7.5, type = 'BA', Out='HillNb'){
+    if (!(Out %in% c('HillNb', 'Entropy'))){stop("Out should be 'HillNb' or 'Entropy'")}
     dataSet <- dplyr::mutate(dataSet, Var=dataSet[[Nvar]])
-    if (Nvar %in% c('D_cm','H_m','V_m3')){
-	    dataSet <- dplyr::mutate(dataSet, Class = (1+floor((Var-Inter/2)/Inter))*Inter)
-    }else if (Nvar=='species'){
+    if (Nvar!='species' & min(dataSet$Var) < ClassIni){
+	    warning('Careful some trees have Size below ClassIni, they will be discarded')
+	    dataSet <- dplyr::filter(dataSet, Var>=ClassIni)
+    }
+    if (Nvar=='species'){
 	    dataSet <- dplyr::mutate(dataSet, Class=as.character(Var))
     }else{
-	    stop('Nvar specified not in output')
+	    ClassInterval <- seq(ClassIni, max(dataSet$Var) + 2* ClassInter, by=ClassInter) 
+	    ClassName <- ClassInterval + mean(diff(ClassInterval)) / 2
+	    dataSet <- dplyr::mutate(dataSet, Class=ClassName[findInterval(Var, ClassInterval)])
     }
-    if (is.null(dataSet[["Var"]])){stop('Need to choose variable first')}
+    if (is.null(dataSet[["Var"]])){stop('Need to choose a correct variable first')}
     if (!('site' %in% names(dataSet))){dataSet <- dplyr::mutate(dataSet, site='NA')}
     if (!('weight' %in% names(dataSet))){dataSet <- dplyr::mutate(dataSet, weight=1)}
     listNameGrouping <- 'site'
