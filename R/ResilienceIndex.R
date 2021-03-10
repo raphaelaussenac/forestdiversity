@@ -21,7 +21,9 @@ EventResilience <- function(dataSet, Nvar='V_m3', RecTime=20){
        error=function(e){return('-1/-1/-1')})), by='site']
     TT <- dplyr::mutate(TT, Theta=as.numeric(do.call(rbind, strsplit(RecMet, '/'))[, 1]),
 	TimeRec=as.numeric(do.call(rbind, strsplit(RecMet, '/'))[,2]),
-	DegRec=as.numeric(do.call(rbind, strsplit(RecMet, '/'))[,3]))
+	DegRec=as.numeric(do.call(rbind, strsplit(RecMet, '/'))[,3]),
+	Phi1=as.numeric(do.call(rbind, strsplit(RecMet, '/'))[,4]),
+	Phi2=as.numeric(do.call(rbind, strsplit(RecMet, '/'))[,5]))
     TT <- dplyr::select(TT, -RecMet)
     TT[TT==-1] <- NA
     TT <- dplyr::mutate(TT, Nvar=Nvar)
@@ -49,16 +51,21 @@ RecoveryMetrics <- function(Var, Year, PreDisturb, RecTime=20, FormatOut='list')
     Intens <- VarPost[1] / VarBef
     if (Intens >= 1){warning('Perturbation did not reduce the variable')}
     dT <- Year[which(Var >= VarBef & PreDisturb==FALSE)][1] - Year[PreDisturb==TRUE]
-    VardT <- Var[which(Year>=(YearBef + RecTime))][1]
-    Out <- data.frame(Theta=Intens/dT, TimeRec=dT, DegRec=1-(VardT-VarBef)/(VarPost[1]-VarBef))
-    Out$DegRec[Out$DegRec>1] <- 1
+    idT <- which(Year>=(YearBef + RecTime - 1))[1]
+    VardT <- Var[idT]
     AdT <- VarBef * RecTime
+    NCI <- sum(abs(Var[1:idT][PreDisturb[1:idT]==FALSE]-VarBef))
+    Out <- data.frame(Theta=Intens/dT, TimeRec=dT,
+        DegRec=1-(VardT-VarBef)/(VarPost[1]-VarBef),
+       	Phi1=1 - NCI/AdT, Phi2=(VarPost[1]-VarBef)*RecTime/NCI)
+    Out$DegRec[Out$DegRec>1] <- 1
+
     if (is.na(dT)){Out$Theta <- -99;Out$TimeRec <- -99}
     if (is.na(VardT)){Out$DegRec <- -99}
     if (FormatOut=='list'){
 	return(Out)
     }else if (FormatOut=='str'){
-	return(paste(Out$Theta, Out$TimeRec, Out$DegRec, sep='/'))
+	return(paste(Out$Theta, Out$TimeRec, Out$DegRec, Out$Phi1, Out$Phi2, sep='/'))
     }else{
         stop('FormatOut should be list or str')
     }
