@@ -4,12 +4,27 @@
 \alias{CalcDivIndex}
 \title{Compute diversity metrics}
 \usage{
-CalcDivIndex(dataSet, Nvar = "D_cm", Inter = 10, type = "BA")
+CalcDivIndex(
+  dataSet,
+  Nvar = "D_cm",
+  ClassInter = 10,
+  ClassIni = 7.5,
+  type = "BA",
+  Out = "HillNb"
+)
 }
 \arguments{
 \item{dataSet, }{data.frame of population, can gather multiple sites, years and sources}
 
-\item{Type}{string, define wether to compute proportion in terms of frequencies or relative basal area}
+\item{ClassInter}{num, Class size (same units as the variable chosen)}
+
+\item{ClassIni}{num, min dbh of the first class}
+
+\item{type}{string, define wether to compute proportion in terms of frequencies or relative basal area}
+
+\item{Out}{string, define wether to compute Hillnb or entropy based indices ('HillNb' or 'Entropy'}
+
+\item{N_var}{string, name of the variable used to compute indices}
 }
 \value{
 A data.frame containing diversity metrics for each site/year/source
