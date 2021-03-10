@@ -97,9 +97,12 @@ format_samsara_Pop <- function(dataRaw){
 #'
 #' This function format the data for further analysis
 #' @param dataRaw, data.frame, dataSet containing the simulation output of Salem
+#' @param ClassInter, num, parameter used to compute diversity indices
+#' @param ClassIni, num, parameter used to compute diversity indices
+#' @param type, str, parameter used to compute diversity indices
 #' @return dataSet, data.table, formatted outuput
 #' @export
-format_salem <- function(dataRaw){
+format_salem <- function(dataRaw, ClassInter=10, ClassIni=7.5, Out='HillNb', type='BA'){
     listNameGrouping <- c('year', 'site', 'src', 'postThinning', 'postDisturbance')
     if (!('year' %in% names(dataRaw))){stop('Need at least severak years')}
     if (!('site' %in% names(dataRaw))){dataRaw <- dplyr::mutate(dataRaw, site='NA')}
@@ -109,10 +112,10 @@ format_salem <- function(dataRaw){
     dataRaw <- data.table::as.data.table(dataRaw)
     dataRaw$postThinning <- as.logical(dataRaw$postThinning)
     dataRaw$postDisturbance <- as.logical(dataRaw$postDisturbance)
-    HetIndexSize <- CalcDivIndex(dataRaw, 'D_cm', Inter=10, type="BA")
+    HetIndexSize <- CalcDivIndex(dataRaw, 'D_cm', ClassInter=ClassInter, ClassIni=ClassIni, type=type)
     names(HetIndexSize)[!(names(HetIndexSize) %in% listNameGrouping)] <- 
 	   paste0(names(HetIndexSize)[!(names(HetIndexSize) %in% listNameGrouping)], 'Size')
-    HetIndexSp <- CalcDivIndex(dataRaw, 'species', Inter=10, type="BA")
+    HetIndexSp <- CalcDivIndex(dataRaw, 'species', ClassInter=10, ClassIni=ClassIni, type=type)
     names(HetIndexSp)[!(names(HetIndexSp) %in% listNameGrouping)] <-
          paste0(names(HetIndexSp)[!(names(HetIndexSp) %in% listNameGrouping)], 'Sp')
     dataSet <- dataRaw[, .(V_m3=sum(weight*V_m3), Dg=sqrt(sum(weight*D_cm^2)/sum(weight)),
