@@ -22,7 +22,7 @@ require(forestdiversity)
 knitr::opts_chunk$set(fig.width=12, fig.height=12)
 ```
 
-# Diversity/geterogeneity indices
+# Diversity/heterogeneity indices
 Diversity indices can be calculated using whether species or size classes.
 
 Two different kind of indices can be computed:
@@ -209,24 +209,31 @@ When there is a disturbance, its values are false (same year but before disturba
 
 We first need to 'format' Salem outputs:
 ```{r echo=TRUE}
-DF <- format_salem(dataRaw=VirtualExperiment)
+DF <- format_salem(dataRaw=VirtualExperiment, ClassInter=10, ClassIni=7.5, type='BA')
 print(head(DF))
-plot(DF, Nvar='V_m3')
+plot(DF, Nvar='V_m3', RecTime=20, normalize='baseline')
 ```
 This function will mostly compute the heterogeneity index for each year and site.
 It creates a new variable called 'preDisturbance': it equals TRUE for every year before the disturbance.
-One can plot the object build by format_salem using plot and the name of the variable to be plotted.
+One can plot the object build by format_salem using plot and the name of the variable to be plotted and the time at which recovery is computed.
+The argument normalize can take three values:
+
+1. 'baseline'
+2. 'impact'
+3. any other value will induce no normalization
+
+See Ingrisch and Bahn, 2018 for details.
 
 The function EventResilience can then be used to compute the recovery metrics.
 I will compute an initial state which is meant over all the years classified as preDisturbance==TRUE, that is all the years before the Event.
 
 ```{r echo=TRUE}
-E <- EventResilience(DF, Nvar='V_m3', RecTime=20)
+E <- EventResilience(DF, Nvar='V_m3', RecTime=20, normalize='baseline')
 print(head(E))
 ```
 
-Some notation explanation: Theta is the recovery rate, TimeRec the time to recovery and DegRec the degree of recovery after X years (the argument RecTime, here 20).
-If TimeRec and Theta are -99, it means the system did not reach recovery.
+Some notation explanation: TimeToRecover is the time to recovery, ThetaRecovery is the recovery rate computed after X years and DegreeRecovery is the degree of recovery after X years (the argument RecTime, here 20).
+If TimeToRecovery and ThetaRecovery are -99, it means the system did not reach recovery.
 If any value is NA, it means that the metric could not be calculated and data should be inspected.
 The function EventResilience also returns the values of the population before disturbance (with the suffix "ini").
 
