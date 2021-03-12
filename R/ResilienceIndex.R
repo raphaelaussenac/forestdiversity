@@ -11,7 +11,7 @@ EventResilience <- function(dataSet, Nvar='V_m3', RecTime=20, normalize='baselin
     if (!(Nvar %in% names(dataSet))){stop('Need a variable from dataSet')}
     if (!('VirtualExperiment' %in% class(dataSet))){stop('Need format first')}
     dataSetini <- dataSet[preDisturbance==TRUE, ]
-    dataSetini <- dplyr::select(dataSetini, -postThinning, -postDisturbance, -preDisturbance, -YearDisturbance)
+    dataSetini <- dplyr::select(dataSetini, -postThinning, -postDisturbance, -preDisturbance, -YearDisturbance, -CONTROL)
     dataSetini <- dataSetini[, lapply(.SD, mean), by=c('site','src')]
     names(dataSetini)[!(names(dataSetini) %in% c('year','site','src'))] <-
         paste0(names(dataSetini)[!(names(dataSetini) %in% c('year','site','src'))], 'ini')
