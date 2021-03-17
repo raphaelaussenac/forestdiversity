@@ -4,10 +4,10 @@
 \alias{ComputeSh}
 \title{Compute Shannon Index}
 \usage{
-ComputeSh(DFQuad)
+ComputeSh(DFgrid)
 }
 \arguments{
-\item{DFQuad, }{data.frame of gridded landscape from Quad function}
+\item{DFgrid, }{Grid object from GridLandcsape function}
 }
 \value{
 alpha, beta and gamma diversity based on Shannon Index
