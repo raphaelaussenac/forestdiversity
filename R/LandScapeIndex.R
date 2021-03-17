@@ -88,8 +88,8 @@ ComputeSh <- function(DFgrid){
   betaNcl <- gammaNcl / alphaNcl
   CVBA <- sum(DFgrid$Area * (DFgrid$BA - mean(DFgrid$BA))^2 / sum(DFgrid$Area))
   CVDg <- sum(DFgrid$Area * (DFgrid$Dg - mean(DFgrid$Dg))^2 / sum(DFgrid$Area))
-  return(data.frame(alphaNcl=alphaNcl, betaNc=betaNcl, gammaNcl=gammaNcl, alpha=alpha, beta=beta, gamma=gamma, 
-      alphaBA=alphaBA, betaBA=betaBA, gammaBA=gammaBA, CVBA=CVBA, CVDg=CVDg))
+  return(data.frame(alphaNcl=alphaNcl, betaNcl=betaNcl, gammaNcl=gammaNcl, alpha=alpha, beta=beta, gamma=gamma, 
+      alphaBA=alphaBA, betaBA=betaBA, gammaBA=gammaBA, CVBA=CVBA, CVDg=CVDg, Res=DFgrid$Res[1]lp))
 }
 
 #' Compute Shannon Index for a given scale
@@ -100,10 +100,10 @@ ComputeSh <- function(DFgrid){
 #' @return alpha, beta and gamma diversity based on Shannon Index
 #' @export
 ComputeShScale <- function(DF, Res=1){
-  SH <- data.frame(N=1:9, Res=Res, Ngrid=NA, alpha=NA, beta=NA, gamma=NA, CVG=NA,CVDg=NA)
-  for (N in 1:9){
-    DFi <- Quad(DF, Res=Res, N=N)
-    SH[N, ] <- c(N, Res, dim(DFi)[1], ComputeSh(DFi))
+  SH <- NULL
+    for (N in 1:9){
+    DFi <- GridLandscape(DF, Res=Res, N=N)
+    SH <- rbind(SH, ComputeSh(DFi))
   }
   return(SH)
 }
