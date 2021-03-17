@@ -233,7 +233,7 @@ print(head(E))
 ```
 
 Some notation explanation: TimeToRecover is the time to recovery, ThetaRecovery is the recovery rate computed after X years and DegreeRecovery is the degree of recovery after X years (the argument RecTime, here 20).
-If TimeToRecovery and ThetaRecovery are -99, it means the system did not reach recovery.
+If TimeToRecovery, it means the system did not reach recovery.
 If any value is NA, it means that the metric could not be calculated and data should be inspected.
 The function EventResilience also returns the values of the population before disturbance (with the suffix "ini").
 
