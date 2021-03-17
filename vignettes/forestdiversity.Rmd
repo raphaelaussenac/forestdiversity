@@ -238,12 +238,25 @@ If any value is NA, it means that the metric could not be calculated and data sh
 The function EventResilience also returns the values of the population before disturbance (with the suffix "ini").
 
 
+# Landscape Metrics
 
+Landscape data are composed of two files, one with the gridded landscape features, one with the trees data with for each grid the trees number by dbh and species.
 
+The function LandscapeDBHtoClass take the trees dataset and return a distribution dataset.
+One can choose to build class with species (Arg Nvar='species') or tree DBH (Arg Nvar='D_cm').
+In the latter case the arguments ClassInter and ClassIni will define are DBH classes are built.
 
+From this distribution dataset, it is possible to build a "gridded distribution dataset", using the function GridLandscape.
+The main argument is the resolution (or more appropriately the grain) chosen to compute heterogeneity indices.
+This function will build a new grid with a resolution equal to Res and gather data into this new grid points.
+As there is a large number of grid configuration possible, the argument N which range from 1 to 9, help produce 9 potential grid configuration to be able to produce variability due to different grid configurations.
+The function ComputeSh will then compute different heterogeneity indices from this gridded dataset, that is
 
-
-
+1. alpha/beta/gamma diversity based on Richness (Nb of class)
+2. alpha/beta/gamma diversity based on shannon from proportion based on density
+3. alpha/beta/gamma diversity based on shannon from proportion based on basal area
+4. The variance of the mean basal area in each grid point
+5. The variance of the mean quadratic diameter in each grid point
 
 
 
