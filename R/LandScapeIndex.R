@@ -90,7 +90,7 @@ ComputeSh <- function(DFgrid){
   CVBA <- sum(DFgrid$Area * (DFgrid$BA - mean(DFgrid$BA))^2 / sum(DFgrid$Area))
   CVDg <- sum(DFgrid$Area * (DFgrid$Dg - mean(DFgrid$Dg))^2 / sum(DFgrid$Area))
   return(data.frame(alphaNcl=alphaNcl, betaNcl=betaNcl, gammaNcl=gammaNcl, alpha=alpha, beta=beta, gamma=gamma, 
-      alphaBA=alphaBA, betaBA=betaBA, gammaBA=gammaBA, CVBA=CVBA, CVDg=CVDg, Res=DFgrid$Res[1]lp))
+      alphaBA=alphaBA, betaBA=betaBA, gammaBA=gammaBA, CVBA=CVBA, CVDg=CVDg, Res=DFgrid$Res[1]))
 }
 
 #' Compute Shannon Index for a given scale
