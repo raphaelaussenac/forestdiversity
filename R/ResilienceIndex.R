@@ -67,16 +67,16 @@ RecoveryMetrics <- function(Var,
     P0 <- Var[preDisturb==FALSE & Year==min(Year[preDisturb==FALSE])]
     Tx <- YearDisturbance[1] + RecTime
     Px <- Var[which(Year>=YearDisturbance[1]+RecTime)[1]]
-    TimeToRecover <- Tf - YearDisturbance
+    TimeToRecover <- Tf - T0
     DegreeRecovery <- Px / C0
-    ThetaRecovery <- (Px - C0) / (Tf - YearDisturbance)
+    ThetaRecovery <- (Px - C0) / (Tf - T0)
     AdT <- TimeToRecover * C0
-    if (max(Year) < (YearDisturbance + RecTime)){com <- 'RecTime is after the maximum year'; DegreeRecovery <- -99}
-    if (is.na(Tf)){com <- paste0(com, '/ No recovery'); TimeToRecover <- -99; ThetaRecovery <- -99}
-    if (sum(PreDisturb==FALSE)<1){com <- paste0(com, '/ No data after disturbance'); DegreeRecovery <- -99; ThetaRecovery <- -99; TimeToRecover <- -99}
+    if (max(Year) < (T0 + RecTime)){com <- 'RecTime is after the maximum year'; ThetaRecovery; DegreeRecovery <- -99}
+    if (is.na(Tf)){com <- paste0(com, '/ No recovery'); TimeToRecover <- -99}
+    if (sum(preDisturb==FALSE)<1){com <- paste0(com, '/ No data after disturbance'); DegreeRecovery <- -99; ThetaRecovery <- -99; TimeToRecover <- -99}
     if (C0 < Pd){com <- paste0(com, '/ Perturbation did not reduce the variable')}
     if (is.na(C0)){com <- paste0(com, '/ No data before perturbation'); DegreeRecovery <- -99; ThetaRecovery <- -99; TimeToRecover <- -99}
-    if (max(Year) < (YearDisturbance + RecTime)){com <- 'RecTime is after the maximum year'; DegreeRecovery <- -99}
+    if (max(Year) < (T0 + RecTime)){com <- 'RecTime is after the maximum year'; DegreeRecovery <- -99; ThetaRecovery <- -99}
     Out <- data.frame(TimeToRecover=TimeToRecover, DegreeRecovery=DegreeRecovery,
         ThetaRecovery=ThetaRecovery, RecTime=RecTime, com=com)
     if (FormatOut=='list'){
