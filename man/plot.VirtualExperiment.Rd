@@ -4,7 +4,7 @@
 \alias{plot.VirtualExperiment}
 \title{Plot virtual experiment}
 \usage{
-\method{plot}{VirtualExperiment}(dataSet, Nvar = "BA")
+\method{plot}{VirtualExperiment}(dataSet, Nvar = "BA", RecTime = 20, normalize = "baseline")
 }
 \arguments{
 \item{dataSet, }{formatted dataset (VirtualExperiment object)}
