@@ -20,8 +20,8 @@ EventResilience <- function(dataSet, Nvar='V_m3', RecTime=20, normalize='baselin
         YearDisturbance, RecTime=RecTime, normalize=normalize, FormatOut='str'),
        error=function(e){return('-1/-1/-1')})), by='site']
     TT <- dplyr::mutate(TT, TimeToRecover=as.numeric(do.call(rbind, strsplit(RecMet, '/'))[, 1]),
-	ThetaRecovery=as.numeric(do.call(rbind, strsplit(RecMet, '/'))[,2]),
-	DegreeRecovery=as.numeric(do.call(rbind, strsplit(RecMet, '/'))[,3]))
+	DegreeRecovery=as.numeric(do.call(rbind, strsplit(RecMet, '/'))[,2]),
+	ThetaRecovery=as.numeric(do.call(rbind, strsplit(RecMet, '/'))[,3]))
 #	Phi1=as.numeric(do.call(rbind, strsplit(RecMet, '/'))[,4]),
 #	Phi2=as.numeric(do.call(rbind, strsplit(RecMet, '/'))[,5]))
     TT <- dplyr::select(TT, -RecMet)
@@ -72,7 +72,7 @@ RecoveryMetrics <- function(Var,
     ThetaRecovery <- (C0 - Pd) / (Tf - T0)
     AdT <- TimeToRecover * C0
     if (max(Year) < (T0 + RecTime)){com <- 'RecTime is after the maximum year'; DegreeRecovery <- -99}
-    if (is.na(Tf)){com <- paste0(com, '/ No recovery'); TimeToRecover <- -99}
+    if (is.na(Tf)){com <- paste0(com, '/ No recovery'); TimeToRecover <- -99; ThetaRecovery <- -99}
     if (sum(preDisturb==FALSE)<1){com <- paste0(com, '/ No data after disturbance'); DegreeRecovery <- -99; ThetaRecovery <- -99; TimeToRecover <- -99}
     if (C0 < Pd){com <- paste0(com, '/ Perturbation did not reduce the variable')}
     if (is.na(C0)){com <- paste0(com, '/ No data before perturbation'); DegreeRecovery <- -99; ThetaRecovery <- -99; TimeToRecover <- -99}
