@@ -4,18 +4,26 @@
 \alias{RecoveryMetrics}
 \title{Compute resilience metrics for one simulation}
 \usage{
-RecoveryMetrics(Var, Year, PreDisturb, RecTime = 20, FormatOut = "list")
+RecoveryMetrics(
+  Var,
+  Year,
+  preDisturb,
+  YearDisturbance,
+  RecTime = 20,
+  normalize = "baseline",
+  FormatOut = "list"
+)
 }
 \arguments{
 \item{Var, }{numeric the variable studied}
 
 \item{Year, }{numeric, the years corresponding to var}
 
-\item{PreDisturb, }{logical, whether the corresponding year is before perturbation}
-
 \item{RecTime, }{integer, Nb of years to compute recovery degree}
 
 \item{FormatOut, }{str, form of output}
+
+\item{PreDisturb, }{logical, whether the corresponding year is before perturbation}
 }
 \value{
 resilience metrics in a list or a string
