@@ -12,7 +12,7 @@ ComputeShScale(DF, Res = 1)
 \item{Res, }{numeric resolution (in km) of the grid}
 }
 \value{
-alpha, beta and gamma diversity based on Shannon Index
+Diversity indices
 }
 \description{
 This function compute the Shannon index for a landscape and a resolution
