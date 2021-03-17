@@ -25,6 +25,7 @@ getdataBaugesInit <- function(){
 #'
 #' This function takes a data.table of landscape and return in a class form 
 #' @param DF, data.table, the landscape with dbh for each tree
+#' @param Nvar, string, the variable used to build class, whehter 'species' or 'D_cm'
 #' @param ClassInter num, Class size (same units as the variable chosen)
 #' @param ClassIni num, min dbh of the first class
 #' @return DFclass, data.table, the equivalent of DF in class form
@@ -54,7 +55,7 @@ LandscapeDBHtoClass <- function(DF, Nvar='D_cm', ClassInter=10, ClassIni=7.5){
 #'
 #' This function compute the Shannon index for a gridded landscape 
 #' @param DFgrid, Grid object from GridLandcsape function
-#' @return alpha, beta and gamma diversity based on Shannon Index
+#' @return diversity indices
 #' @export
 ComputeSh <- function(DFgrid){
   plog <- function(x){
@@ -97,7 +98,7 @@ ComputeSh <- function(DFgrid){
 #' This function compute the Shannon index for a landscape and a resolution
 #' @param DF, data.frame of landscape data
 #' @param Res, numeric resolution (in km) of the grid
-#' @return alpha, beta and gamma diversity based on Shannon Index
+#' @return Diversity indices
 #' @export
 ComputeShScale <- function(DF, Res=1){
   SH <- NULL
