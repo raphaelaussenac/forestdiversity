@@ -5,7 +5,7 @@ vignette: >
   %\VignetteIndexEntry{forestdiversity}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
-fig_width: 6 
+fig_width: 9 
 fig_height: 6 
 ---
 
@@ -232,8 +232,8 @@ E <- EventResilience(DF, Nvar='V_m3', RecTime=20, normalize='baseline')
 print(head(E))
 ```
 
-Some notation explanation: TimeToRecover is the time to recovery, ThetaRecovery is the recovery rate computed after X years and DegreeRecovery is the degree of recovery after X years (the argument RecTime, here 20).
-If TimeToRecovery, it means the system did not reach recovery.
+Some notation explanation: TimeToRecover is the time to recovery (i.e. Tf-T0), ThetaRecovery is the recovery rate (i.e. $\frac{C0-Pd}{Tf-T0}$ and DegreeRecovery is the degree of recovery after X years (the argument RecTime, here 20, i.e. $\frac{Px}{C0}$).
+If TimeToRecovery is -99, it means the system did not reach recovery.
 If any value is NA, it means that the metric could not be calculated and data should be inspected.
 The function EventResilience also returns the values of the population before disturbance (with the suffix "ini").
 
