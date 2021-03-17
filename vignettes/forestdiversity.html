@@ -525,11 +525,13 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 </ol>
 <p>See Ingrisch and Bahn, 2018 for details.</p>
 <p>The function EventResilience can then be used to compute the recovery metrics. I will compute an initial state which is meant over all the years classified as preDisturbance==TRUE, that is all the years before the Event.</p>
-<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb33-1" data-line-number="1">E &lt;-<span class="st"> </span><span class="kw">EventResilience</span>(DF, <span class="dt">Nvar=</span><span class="st">'V_m3'</span>, <span class="dt">RecTime=</span><span class="dv">20</span>, <span class="dt">normalize=</span><span class="st">'baseline'</span>)</a>
-<a class="sourceLine" id="cb33-2" data-line-number="2"><span class="kw">print</span>(<span class="kw">head</span>(E))</a></code></pre></div>
-<pre><code>##    site TimeToRecover DegreeRecovery ThetaRecovery Nvar   src year  V_m3ini
-## 1:    1            10      1.4213139    0.03148667 V_m3 salem 2000 284.6961
-## 2:    2           -99      0.7587866  -99.00000000 V_m3 salem 2000 504.4040
+<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb33-1" data-line-number="1">E &lt;-<span class="st"> </span><span class="kw">EventResilience</span>(DF, <span class="dt">Nvar=</span><span class="st">'V_m3'</span>, <span class="dt">RecTime=</span><span class="dv">20</span>, <span class="dt">normalize=</span><span class="st">'baseline'</span>)</a></code></pre></div>
+<pre><code>## Warning in mask$eval_all_mutate(quo): NAs introduits lors de la conversion
+## automatique</code></pre>
+<div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb35-1" data-line-number="1"><span class="kw">print</span>(<span class="kw">head</span>(E))</a></code></pre></div>
+<pre><code>##    site TimeToRecover ThetaRecovery DegreeRecovery Nvar   src year  V_m3ini
+## 1:    1            10     1.4213139     0.03148667 V_m3 salem 2000 284.6961
+## 2:    2           -99     0.7587866             NA V_m3 salem 2000 504.4040
 ##       Dgini      Nini    BAini GiniSizeini NclassSizeini H1Sizeini H2Sizeini
 ## 1: 20.40460  876.2345 28.65276   0.2834760             3  2.439753  2.076062
 ## 2: 20.08179 1561.3681 49.45385   0.2700293             3  2.302936  1.909366
@@ -537,6 +539,19 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 ## 1:           1 1.000000 1.000000       NA
 ## 2:           2 1.999985 1.999971       NA</code></pre>
 <p>Some notation explanation: TimeToRecover is the time to recovery (i.e. Tf-T0), ThetaRecovery is the recovery rate (i.e. <span class="math inline">\(\frac{C0-Pd}{Tf-T0}\)</span> and DegreeRecovery is the degree of recovery after X years (the argument RecTime, here 20, i.e. <span class="math inline">\(\frac{Px}{C0}\)</span>). If TimeToRecovery is -99, it means the system did not reach recovery. If any value is NA, it means that the metric could not be calculated and data should be inspected. The function EventResilience also returns the values of the population before disturbance (with the suffix “ini”).</p>
+</div>
+<div id="landscape-metrics" class="section level1">
+<h1>Landscape Metrics</h1>
+<p>Landscape data are composed of two files, one with the gridded landscape features, one with the trees data with for each grid the trees number by dbh and species.</p>
+<p>The function LandscapeDBHtoClass take the trees dataset and return a distribution dataset. One can choose to build class with species (Arg Nvar=‘species’) or tree DBH (Arg Nvar=‘D_cm’). In the latter case the arguments ClassInter and ClassIni will define are DBH classes are built.</p>
+<p>From this distribution dataset, it is possible to build a “gridded distribution dataset”, using the function GridLandscape. The main argument is the resolution (or more appropriately the grain) chosen to compute heterogeneity indices. This function will build a new grid with a resolution equal to Res and gather data into this new grid points. As there is a large number of grid configuration possible, the argument N which range from 1 to 9, help produce 9 potential grid configuration to be able to produce variability due to different grid configurations. The function ComputeSh will then compute different heterogeneity indices from this gridded dataset, that is</p>
+<ol style="list-style-type: decimal">
+<li>alpha/beta/gamma diversity based on Richness (Nb of class)</li>
+<li>alpha/beta/gamma diversity based on shannon from proportion based on density</li>
+<li>alpha/beta/gamma diversity based on shannon from proportion based on basal area</li>
+<li>The variance of the mean basal area in each grid point</li>
+<li>The variance of the mean quadratic diameter in each grid point</li>
+</ol>
 </div>
 
 
