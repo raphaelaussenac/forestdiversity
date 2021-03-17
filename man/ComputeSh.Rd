@@ -10,7 +10,7 @@ ComputeSh(DFgrid)
 \item{DFgrid, }{Grid object from GridLandcsape function}
 }
 \value{
-alpha, beta and gamma diversity based on Shannon Index
+diversity indices
 }
 \description{
 This function compute the Shannon index for a gridded landscape
