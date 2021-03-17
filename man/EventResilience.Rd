@@ -4,7 +4,7 @@
 \alias{EventResilience}
 \title{Compute resilience metrics for a dataSet}
 \usage{
-EventResilience(dataSet, Nvar = "V_m3", RecTime = 20)
+EventResilience(dataSet, Nvar = "V_m3", RecTime = 20, normalize = "baseline")
 }
 \arguments{
 \item{dataSet, }{data.frame formatted using format_Salem or format_Samsara with multiple simulation conditions}
