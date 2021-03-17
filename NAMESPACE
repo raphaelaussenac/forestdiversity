@@ -2,6 +2,7 @@
 
 S3method(plot,DistanceTab)
 S3method(plot,VirtualExperiment)
+S3method(plot,VirtualExperimentControl)
 export(CalcDivIndex)
 export(ComputeSh)
 export(ComputeShScale)
