@@ -19,6 +19,8 @@ format_salem(
 
 \item{ClassIni, }{num, parameter used to compute diversity indices}
 
+\item{Out, }{str, 'HillNb' or 'Entropy'}
+
 \item{type, }{str, parameter used to compute diversity indices}
 }
 \value{
