@@ -126,6 +126,7 @@ format_samsara_Pop <- function(dataRaw){
 #' @param ClassInter, num, parameter used to compute diversity indices
 #' @param ClassIni, num, parameter used to compute diversity indices
 #' @param type, str, parameter used to compute diversity indices
+#' @param Out, str, 'HillNb' or 'Entropy' 
 #' @return dataSet, data.table, formatted outuput
 #' @export
 format_salem <- function(dataRaw, ClassInter=10, ClassIni=7.5, Out='HillNb', type='BA'){
