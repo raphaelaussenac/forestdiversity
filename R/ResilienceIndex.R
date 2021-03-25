@@ -137,7 +137,7 @@ format_salem <- function(dataRaw, ClassInter=10, ClassIni=7.5, Out='HillNb', typ
     dataRaw <- data.table::as.data.table(dataRaw)
     dataRaw$postThinning <- as.logical(dataRaw$postThinning)
     dataRaw$postDisturbance <- as.logical(dataRaw$postDisturbance)
-    HetIndexSize <- CalcDivIndex(dataRaw, 'D_cm', ClassInter=ClassInter, ClassIni=ClassIni, type=type)
+    HetIndexSize <- CalcDivIndex(dataRaw, 'D_cm', ClassInter=ClassInter, ClassIni=ClassIni, type=type, Out=Out)
     names(HetIndexSize)[!(names(HetIndexSize) %in% listNameGrouping)] <- 
 	   paste0(names(HetIndexSize)[!(names(HetIndexSize) %in% listNameGrouping)], 'Size')
     HetIndexSp <- CalcDivIndex(dataRaw, 'species', ClassInter=10, ClassIni=ClassIni, type=type)
