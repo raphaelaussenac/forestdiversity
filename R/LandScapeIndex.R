@@ -106,7 +106,7 @@ ComputeShScale <- function(DF, Res=1){
     DFi <- GridLandscape(DF, Res=Res, N=N)
     SH <- rbind(SH, ComputeSh(DFi))
   }
-  return(SH)
+  return(dplyr::mutate(SH, N=1:9))
 }
 
 #' Compute a gridded landscape
@@ -222,7 +222,7 @@ Plot_Shannon_Scale <- function(DF, Res=c(0.05, 0.1, 1, 2, 5)){
 	ymin=CVDgM-2*CVDgS, ymax=CVDgM+2*CVDgS), col='red') +
         geom_line(aes(y=CVDgM), col='red') + theme(text=element_text(size=24)) +
         xlab('Grain') + ylab('Quadratic diameter variance')
-    return(pl)
+    print(pl)
 }
 
 
