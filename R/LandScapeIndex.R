@@ -144,6 +144,7 @@ GridLandscape <- function(DFclass, Res=1, N=9){
     DF3 <- DFclass[, list(
 	    Dg=sum(Dg*Area*NHA, na.rm=TRUE)/sum(Area*NHA, na.rm=TRUE),
 	    BA=sum(BA*Area, na.rm=TRUE)/sum(Area, na.rm=TRUE),
+	    NHA=sum(NHA*Area, na.rm=TRUE)/sum(Area, na.rm=TRUE),
 	    Ncells=.N,
 	    Area=sum(Area, na.rm=TRUE),
 	    XCenter=mean(XCenter), YCenter=mean(YCenter),
