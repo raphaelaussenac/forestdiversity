@@ -51,13 +51,13 @@ LandscapeDBHtoClass <- function(DF, Nvar='D_cm', ClassInter=10, ClassIni=7.5){
     return(DFclass)
 }
 
-#' Compute Shannon Index
+#' Compute heterogeneity Index for a gridded landscape
 #'
-#' This function compute the Shannon index for a gridded landscape 
+#' This function compute the heterogeneity indices for a gridded landscape 
 #' @param DFgrid, Grid object from GridLandcsape function
 #' @return diversity indices
 #' @export
-ComputeSh <- function(DFgrid){
+ComputeHeterogeneity <- function(DFgrid){
   plog <- function(x){
         x[is.na(x)] <- 0
         x <- x/sum(x)
@@ -93,18 +93,51 @@ ComputeSh <- function(DFgrid){
       alphaBA=alphaBA, betaBA=betaBA, gammaBA=gammaBA, CVBA=CVBA, CVDg=CVDg, Res=DFgrid$Res[1]))
 }
 
-#' Compute Shannon Index for a given scale
+ComputeBiodiversity <- function(DFGrid){
+    iC <- which(!(substr(names(DFGrid),1,7) %in% c('Nclass_', 'BAclass', 'Iind',
+	 'Ncells', 'XCenter', 'YCenter', 'xgrid', 'ygrid', 'Res', 'N', 'Area', 'BA', 'Dg', 'NHA')))
+    DFg <- DFGrid[, ..iC]
+    DFMean <- apply(DFg, 2, meanW, W=DFGrid$Area)
+    DF10 <- apply(DFg, 2, reldist::wtd.quantile, na.rm=TRUE, q=0.1, weight=DFGrid$Area)
+    DF90 <- apply(DFg, 2, reldist::wtd.quantile, na.rm=TRUE, q=0.9, weight=DFGrid$Area)
+    names(DF10) <- paste0(names(DF10), 'P10')
+    names(DF90) <- paste0(names(DF90), 'P90')
+    OUTThresh <- NULL
+    if ('VWD' %in% names(DFGrid)){
+        VDW20 <- sum(DFGrid$Area[DFGrid$VDW>=20]) * 1e-2
+        VDW60 <- sum(DFGrid$Area[DFGrid$VDW>=60]) * 1e-2
+        OUTThresh <- c(OUTThresh, VDW20, VDW60)
+    }
+    if ('LSDTN' %in% names(DFGrid)){
+        LSDTN1 <- sum(DFGrid$Area[DFGrid$LSDTN>=1]) * 1e-2
+        LSDTN3 <- sum(DFGrid$Area[DFGrid$LSDTN>=3]) * 1e-2
+        OUTThresh <- c(OUTThresh, LSDTN1, LSDTN3)
+    }
+    if ('LLDTN' %in% names(DFGrid)){
+        LLDTN2 <- sum(DFGrid$Area[DFGrid$VLLTN>=2]) * 1e-2
+        LLDTN6 <- sum(DFGrid$Area[DFGrid$VLLTN>=6]) * 1e-2
+        OUTThresh <- c(OUTThresh, LLDTN2, LLDTN6)
+    }
+    if (is.null(OUTThresh)){
+        OUT <- data.frame(t(DFMean), t(DF10), t(DF90))
+    }else{
+        OUT <- data.frame(t(DFMean), t(DF10), t(DF90),  t(OUTThresh))
+    }
+    return(OUT)
+}
+
+#' Compute heterogeneity Index for a distribution landscape and a given resolution
 #'
-#' This function compute the Shannon index for a landscape and a resolution
+#' This function compute the heterogeneity indices for a landscape and a resolution
 #' @param DF, data.frame of landscape data
 #' @param Res, numeric resolution (in km) of the grid
 #' @return Diversity indices
 #' @export
-ComputeShScale <- function(DF, Res=1){
+ComputeHeterogeneityScale <- function(DF, Res=1){
   SH <- NULL
     for (N in 1:9){
     DFi <- GridLandscape(DF, Res=Res, N=N)
-    SH <- rbind(SH, ComputeSh(DFi))
+    SH <- rbind(SH, cbind(ComputeHeterogeneity(DFi), ComputeBiodiversity(DFi)))
   }
   return(dplyr::mutate(SH, N=1:9))
 }
@@ -149,7 +182,11 @@ GridLandscape <- function(DFclass, Res=1, N=9){
 	    Area=sum(Area, na.rm=TRUE),
 	    XCenter=mean(XCenter), YCenter=mean(YCenter),
 	    xgrid=xgrid[mean(xind)]+Res/2, ygrid=ygrid[mean(yind)]+Res/2), by=Iind]
+    ### Other varaibles (biodiversity)
+    iOther <- which(!(substr(names(DFclass),1,7) %in% substr(c(names(DF2), names(DF3), 'cellID', 'xind', 'yind','pA'),1,7)))
+    DF4 <- DFclass[, lapply(.SD, meanW, W=Area), by=Iind, .SDcols=iOther]
     DF <- merge(DF2, DF3, by="Iind")
+    DF <- merge(DF, DF4, by="Iind")
     DF <- dplyr::mutate(DF, Res=Res, N=N)
     class(DF) <- append('Grid', class(DF))
     return(DF)
@@ -212,33 +249,34 @@ plotAllGrid <- function(DFclass, Res=1){
 #' @param Res, numeric vector, resolution (in km) of the grid
 #' @return Plot
 #' @export
-plotHeterogeneityScale <- function(DF, Res=c(0.05, 0.1, 1, 2, 5)){
-    SHscale <- do.call(rbind, lapply(Res, ComputeShScale, DF=DF))
-    SHm <- dplyr::group_by(SHscale, Res)
-    SHm2 <- dplyr::summarise(SHm, alphaM=mean(alpha),
-	alphaS=sd(alpha), betaM=mean(beta), betaS=sd(beta), 
-	CVBAM=mean(CVBA), CVDgM=mean(CVDg),
-	CVBAS=sd(CVBA), CVDgS=sd(CVDg),
-	gamma=mean(gamma))
-    SHm <- dplyr::ungroup(SHm2)
-    p1 <- ggplot2::ggplot(SHm, ggplot2::aes(x=Res)) + ggplot2::geom_pointrange(ggplot2::aes(y=alphaM,
-	ymin=alphaM-2*alphaS, ymax=alphaM+2*alphaS)) + 
-        ggplot2::geom_line(ggplot2::aes(y=alphaM)) + ggplot2::theme(text=ggplot2::element_text(size=24)) +
+ComputeHeterogeneityMultiScale <- function(DF, Res=c(0.05, 0.1, 1, 2, 5), PLOT=FALSE){
+    HetMultiscale <- do.call(rbind, lapply(Res, ComputeHeterogeneityScale, DF=DF))
+    HetMultiscale <- data.table::as.data.table(HetMultiscale)
+    HetMultiscaleMean <- HetMultiscale[, lapply(.SD, mean, na.rm=TRUE), by=Res]
+    names(HetMultiscaleMean) <- paste0('Mean', names(HetMultiscaleMean))
+    HetMultiscaleSD <- HetMultiscale[, lapply(.SD, sd, na.rm=TRUE), by=Res]
+    names(HetMultiscaleSD) <- paste0('SD', names(HetMultiscaleSD))
+    OUT <- cbind(HetMultiscaleMean, HetMultiscaleSD)
+    print(OUT)
+    p1 <- ggplot2::ggplot(OUT, ggplot2::aes(x=Res)) + ggplot2::geom_pointrange(ggplot2::aes(y=Meanalpha,
+	ymin=Meanalpha-2*SDalpha, ymax=Meanalpha+2*SDalpha)) + 
+        ggplot2::geom_line(ggplot2::aes(y=Meanalpha)) + ggplot2::theme(text=ggplot2::element_text(size=24)) +
         ggplot2::xlab('Grain') + ggplot2::ylab('Alpha')
-    p2 <- ggplot2::ggplot(SHm, ggplot2::aes(x=Res)) + ggplot2::geom_pointrange(ggplot2::aes(y=betaM,
-	ymin=betaM-2*betaS, ymax=betaM+2*betaS), col='red') +
-        ggplot2::geom_line(ggplot2::aes(y=betaM), col='red') + ggplot2::theme(text=ggplot2::element_text(size=24)) +
+    p2 <- ggplot2::ggplot(OUT, ggplot2::aes(x=Res)) + ggplot2::geom_pointrange(ggplot2::aes(y=Meanbeta,
+	ymin=Meanbeta-2*SDbeta, ymax=Meanbeta+2*SDbeta), col='red') +
+        ggplot2::geom_line(ggplot2::aes(y=Meanbeta), col='red') + ggplot2::theme(text=ggplot2::element_text(size=24)) +
         ggplot2::xlab('Grain') + ggplot2::ylab('Beta')
-    p3 <- ggplot2::ggplot(SHm, ggplot2::aes(x=Res)) + ggplot2::geom_pointrange(ggplot2::aes(y=CVBAM,
-	ymin=CVBAM-2*CVBAS, ymax=CVBAM+2*CVBAS), col='red') +
-        ggplot2::geom_line(ggplot2::aes(y=CVBAM), col='red') + ggplot2::theme(text=ggplot2::element_text(size=24)) +
+    p3 <- ggplot2::ggplot(OUT, ggplot2::aes(x=Res)) + ggplot2::geom_pointrange(ggplot2::aes(y=MeanCVBA,
+	ymin=MeanCVBA-2*SDCVBA, ymax=MeanCVBA+2*SDCVBA), col='red') +
+        ggplot2::geom_line(ggplot2::aes(y=MeanCVBA), col='red') + ggplot2::theme(text=ggplot2::element_text(size=24)) +
         ggplot2::xlab('Grain') + ggplot2::ylab('Basal area variance')
-    p4 <- ggplot2::ggplot(SHm, ggplot2::aes(x=Res)) + ggplot2::geom_pointrange(ggplot2::aes(y=CVDgM,
-	ymin=CVDgM-2*CVDgS, ymax=CVDgM+2*CVDgS), col='red') +
-        ggplot2::geom_line(ggplot2::aes(y=CVDgM), col='red') + ggplot2::theme(text=ggplot2::element_text(size=24)) +
+    p4 <- ggplot2::ggplot(OUT, ggplot2::aes(x=Res)) + ggplot2::geom_pointrange(ggplot2::aes(y=MeanCVDg,
+	ymin=MeanCVDg-2*SDCVDg, ymax=MeanCVDg+2*SDCVDg), col='red') +
+        ggplot2::geom_line(ggplot2::aes(y=MeanCVDg), col='red') + ggplot2::theme(text=ggplot2::element_text(size=24)) +
         ggplot2::xlab('Grain') + ggplot2::ylab('Quadratic diameter variance')
     pl <- multiplot(p1, p2, p3, p4, cols=2)
-    print(pl)
+    if (PLOT==TRUE){print(pl)}
+    return(OUT)
 }
 
 ####
@@ -288,7 +326,10 @@ multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
   }
 }
 
-
-
-
+meanW <- function(X, W){
+    iNA <- which(!is.na(X) & !is.na(W))
+    W <- X[iNA]
+    X <- X[iNA]
+    return(sum(X*W)/sum(W))
+}
 
