@@ -109,13 +109,13 @@ ComputeBiodiversity <- function(DFGrid){
         OUTThresh <- c(OUTThresh, VDW20, VDW60)
     }
     if ('LSDTN' %in% names(DFGrid)){
-        LSDTN1 <- sum(DFGrid$Area[DFGrid$LSDTN>=1]) * 1e-2
-        LSDTN3 <- sum(DFGrid$Area[DFGrid$LSDTN>=3]) * 1e-2
+        LSDTN1 <- sum(DFGrid$Area[DFGrid$LSDTN>=1]) / sum(DFGrid$Area)
+        LSDTN3 <- sum(DFGrid$Area[DFGrid$LSDTN>=3]) / sum(DFGrid$Area)
         OUTThresh <- c(OUTThresh, LSDTN1, LSDTN3)
     }
     if ('LLDTN' %in% names(DFGrid)){
-        LLDTN2 <- sum(DFGrid$Area[DFGrid$VLLTN>=2]) * 1e-2
-        LLDTN6 <- sum(DFGrid$Area[DFGrid$VLLTN>=6]) * 1e-2
+        LLDTN2 <- sum(DFGrid$Area[DFGrid$VLLTN>=2]) / sum(DFGrid$Area)
+        LLDTN6 <- sum(DFGrid$Area[DFGrid$VLLTN>=6]) / sum(DFGrid$Area)
         OUTThresh <- c(OUTThresh, LLDTN2, LLDTN6)
     }
     if (is.null(OUTThresh)){
