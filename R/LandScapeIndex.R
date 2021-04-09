@@ -155,6 +155,12 @@ GridLandscape <- function(DFclass, Res=1, N=9){
     return(DF)
 }
 
+#' Plot a gridded landscape
+#'
+#' This function compute the gridded landscape
+#' @param DFclass, data.frame of gridded landscape data
+#' @return plot of Basal area
+#' @export
 plot.Grid <- function(DFgrid){
     plog <- function(x){
         x[is.na(x)] <- 0
@@ -199,6 +205,13 @@ plotAllGrid <- function(DFclass, Res=1){
     print(pl)
 }
 
+#' Compute Heterogeneity metrics for a different scales
+#'
+#' This function compute the Shannon index for a landscape and a resolution
+#' @param DF, data.frame of distribution landscape data
+#' @param Res, numeric vector, resolution (in km) of the grid
+#' @return Plot
+#' @export
 plotHeterogeneityScale <- function(DF, Res=c(0.05, 0.1, 1, 2, 5)){
     SHscale <- do.call(rbind, lapply(Res, ComputeShScale, DF=DF))
     SHm <- dplyr::group_by(SHscale, Res)
