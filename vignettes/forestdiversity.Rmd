@@ -244,13 +244,35 @@ Landscape data are composed of two files, one with the gridded landscape feature
 
 The function LandscapeDBHtoClass take the trees dataset and return a distribution dataset.
 One can choose to build class with species (Arg Nvar='species') or tree DBH (Arg Nvar='D_cm').
-In the latter case the arguments ClassInter and ClassIni will define are DBH classes are built.
+In the latter case the arguments ClassInter and ClassIni will definehow  are DBH classes are built.
+The example object LandscapeExample has been obtained from landscape data with:
 
+```{r eval=FALSE}
+DFc=LandscapeDBHtoClass(LandscapeExample, Nvar='D_cm', ClassInter=10, ClassIni=7.5)
+```
+```{r echo=TRUE}
+print(head(LandscapeExample))
+ggplot2::ggplot(LandscapeExample, ggplot2::aes(x=XCenter, y=YCenter, col=BA)) + ggplot2::geom_point() + viridis::scale_color_viridis()
+```
+
+LandscapeDBHtoClass function returns a data.frame with classes based on the number of trees (Nclass...) or the basal area (BAClass...).
+It also computes the basal area (BA), the mean quadratic diameter (Dg), and the tree density (NHA).
 From this distribution dataset, it is possible to build a "gridded distribution dataset", using the function GridLandscape.
 The main argument is the resolution (or more appropriately the grain) chosen to compute heterogeneity indices.
 This function will build a new grid with a resolution equal to Res and gather data into this new grid points.
+
 As there is a large number of grid configuration possible, the argument N which range from 1 to 9, help produce 9 potential grid configuration to be able to produce variability due to different grid configurations.
-The function ComputeSh will then compute different heterogeneity indices from this gridded dataset, that is
+
+```{r echo=TRUE}
+GridData=GridLandscape(LandscapeExample, Res=.5, N=1)
+print(head(GridData))
+plot(GridData)
+```
+The GridLandscape function returns a data.frame at the new resolution, and just gather the data from the distribution dataset.
+It also computes the quadratic mean diameter (Dg), the total basal area (BA), the tree density (NHA), the number of initial cells within each grid point (Ncells) and their area.
+
+The function ComputeSh will compute different heterogeneity indices from the distriution dataset (here LandscapeExample).
+The gridding process is performed within the function.
 
 1. alpha/beta/gamma diversity based on Richness (Nb of class)
 2. alpha/beta/gamma diversity based on shannon from proportion based on density
@@ -258,8 +280,15 @@ The function ComputeSh will then compute different heterogeneity indices from th
 4. The variance of the mean basal area in each grid point
 5. The variance of the mean quadratic diameter in each grid point
 
+For example to compute heterogeneity metrics at 0.1 km resolution :
+```{r echo=TRUE}
+ComputeShScale(LandscapeExample, Res=0.1)
+```
+All metrics are computed using 9 grid configuration (variable N in the data.frame).
 
-
+```{r echo=TRUE}
+plotHeterogeneityScale(LandscapeExample, Res=c(0.05, 0.1, 0.5), PLOT=TRUE)
+```
 
 
 
