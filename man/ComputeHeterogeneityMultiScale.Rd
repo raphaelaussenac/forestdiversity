@@ -2,7 +2,7 @@
 % Please edit documentation in R/LandScapeIndex.R
 \name{ComputeHeterogeneityMultiScale}
 \alias{ComputeHeterogeneityMultiScale}
-\title{Compute Heterogeneity metrics for a different scales}
+\title{Compute Heterogeneity and biodiversitymetrics for a different scales}
 \usage{
 ComputeHeterogeneityMultiScale(DF, Res = c(0.05, 0.1, 1, 2, 5), PLOT = FALSE)
 }
@@ -15,5 +15,5 @@ ComputeHeterogeneityMultiScale(DF, Res = c(0.05, 0.1, 1, 2, 5), PLOT = FALSE)
 Plot
 }
 \description{
-This function compute the Shannon index for a landscape and a resolution
+This function compute the indices index for a landscape and a resolution
 }
