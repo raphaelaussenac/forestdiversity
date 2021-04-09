@@ -15,5 +15,5 @@ ComputeHeterogeneityScale(DF, Res = 1)
 Diversity indices
 }
 \description{
-This function compute the heterogeneity indices for a landscape and a resolution
+This function compute the heterogeneity and biodiversity indices for a landscape and a resolution
 }
