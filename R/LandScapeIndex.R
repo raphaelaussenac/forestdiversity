@@ -166,7 +166,7 @@ plot.Grid <- function(DFgrid){
     DFgrid <- dplyr::mutate(DFgrid, Sh=SH)
     Res <- DFgrid$Res[1]
     pl <- ggplot2::ggplot(DFgrid, ggplot2::aes(xmin=xgrid-Res/2, xmax=xgrid+Res/2,
-	ymin=ygrid-Res/2, ymax=ygrid+Res/2, fill=Sh)) +
+	ymin=ygrid-Res/2, ymax=ygrid+Res/2, fill=BA)) +
         viridis::scale_fill_viridis() + #begin=0, end=2) +
        	ggplot2::geom_rect() +
 	ggplot2::theme(text=ggplot2::element_text(size=24)) +
@@ -199,31 +199,80 @@ plotAllGrid <- function(DFclass, Res=1){
     print(pl)
 }
 
-Plot_Shannon_Scale <- function(DF, Res=c(0.05, 0.1, 1, 2, 5)){
+plotHeterogeneityScale <- function(DF, Res=c(0.05, 0.1, 1, 2, 5)){
     SHscale <- do.call(rbind, lapply(Res, ComputeShScale, DF=DF))
-    SHm <- group_by(SHscale, Res) %>% summarise(alphaM=mean(alpha),
+    SHm <- dplyr::group_by(SHscale, Res)
+    SHm2 <- dplyr::summarise(SHm, alphaM=mean(alpha),
 	alphaS=sd(alpha), betaM=mean(beta), betaS=sd(beta), 
-	CVGM=mean(CVG), CVDgM=mean(CVDg),
-	CVGS=sd(CVG), CVDgS=sd(CVDg),
-	gamma=mean(gamma)) %>% ungroup()
-    p1 <- ggplot(SHm, aes(x=Res)) + geom_pointrange(aes(y=alphaM,
+	CVBAM=mean(CVBA), CVDgM=mean(CVDg),
+	CVBAS=sd(CVBA), CVDgS=sd(CVDg),
+	gamma=mean(gamma))
+    SHm <- dplyr::ungroup(SHm2)
+    p1 <- ggplot2::ggplot(SHm, ggplot2::aes(x=Res)) + ggplot2::geom_pointrange(ggplot2::aes(y=alphaM,
 	ymin=alphaM-2*alphaS, ymax=alphaM+2*alphaS)) + 
-        geom_line(aes(y=alphaM)) + theme(text=element_text(size=24)) +
-        xlab('Grain') + ylab('Alpha')
-    p2 <- ggplot(SHm, aes(x=Res)) + geom_pointrange(aes(y=betaM,
+        ggplot2::geom_line(ggplot2::aes(y=alphaM)) + ggplot2::theme(text=ggplot2::element_text(size=24)) +
+        ggplot2::xlab('Grain') + ggplot2::ylab('Alpha')
+    p2 <- ggplot2::ggplot(SHm, ggplot2::aes(x=Res)) + ggplot2::geom_pointrange(ggplot2::aes(y=betaM,
 	ymin=betaM-2*betaS, ymax=betaM+2*betaS), col='red') +
-        geom_line(aes(y=betaM), col='red') + theme(text=element_text(size=24)) +
-        xlab('Grain') + ylab('Beta')
-    pl <- multiplot(p1, p2, cols=2)
-    p3 <- ggplot(SHm, aes(x=Res)) + geom_pointrange(aes(y=CVGM,
-	ymin=CVGM-2*CVGS, ymax=CVGM+2*CVGS), col='red') +
-        geom_line(aes(y=CVGM), col='red') + theme(text=element_text(size=24)) +
-        xlab('Grain') + ylab('Basal area variance')
-    p4 <- ggplot(SHm, aes(x=Res)) + geom_pointrange(aes(y=CVDgM,
+        ggplot2::geom_line(ggplot2::aes(y=betaM), col='red') + ggplot2::theme(text=ggplot2::element_text(size=24)) +
+        ggplot2::xlab('Grain') + ggplot2::ylab('Beta')
+    p3 <- ggplot2::ggplot(SHm, ggplot2::aes(x=Res)) + ggplot2::geom_pointrange(ggplot2::aes(y=CVBAM,
+	ymin=CVBAM-2*CVBAS, ymax=CVBAM+2*CVBAS), col='red') +
+        ggplot2::geom_line(ggplot2::aes(y=CVBAM), col='red') + ggplot2::theme(text=ggplot2::element_text(size=24)) +
+        ggplot2::xlab('Grain') + ggplot2::ylab('Basal area variance')
+    p4 <- ggplot2::ggplot(SHm, ggplot2::aes(x=Res)) + ggplot2::geom_pointrange(ggplot2::aes(y=CVDgM,
 	ymin=CVDgM-2*CVDgS, ymax=CVDgM+2*CVDgS), col='red') +
-        geom_line(aes(y=CVDgM), col='red') + theme(text=element_text(size=24)) +
-        xlab('Grain') + ylab('Quadratic diameter variance')
+        ggplot2::geom_line(ggplot2::aes(y=CVDgM), col='red') + ggplot2::theme(text=ggplot2::element_text(size=24)) +
+        ggplot2::xlab('Grain') + ggplot2::ylab('Quadratic diameter variance')
+    pl <- multiplot(p1, p2, p3, p4, cols=2)
     print(pl)
+}
+
+####
+# Multiple plot function
+#
+# ggplot objects can be passed in ..., or to plotlist (as a list of ggplot objects)
+# - cols:   Number of columns in layout
+# - layout: A matrix specifying the layout. If present, 'cols' is ignored.
+#
+# If the layout is something like matrix(c(1,2,3,3), nrow=2, byrow=TRUE),
+# then plot 1 will go in the upper left, 2 will go in the upper right, and
+# 3 will go all the way across the bottom.
+#
+multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+  library(grid)
+
+  # Make a list from the ... arguments and plotlist
+  plots <- c(list(...), plotlist)
+
+  numPlots = length(plots)
+
+  # If layout is NULL, then use 'cols' to determine layout
+  if (is.null(layout)) {
+    # Make the panel
+    # ncol: Number of columns of plots
+    # nrow: Number of rows needed, calculated from # of cols
+    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                    ncol = cols, nrow = ceiling(numPlots/cols))
+  }
+
+ if (numPlots==1) {
+    print(plots[[1]])
+
+  } else {
+    # Set up the page
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+
+    # Make each plot, in the correct location
+    for (i in 1:numPlots) {
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+
+      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
+    }
+  }
 }
 
 
