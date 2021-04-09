@@ -93,6 +93,12 @@ ComputeHeterogeneity <- function(DFgrid){
       alphaBA=alphaBA, betaBA=betaBA, gammaBA=gammaBA, CVBA=CVBA, CVDg=CVDg, Res=DFgrid$Res[1]))
 }
 
+#' Compute biodiversity Index for a gridded landscape
+#'
+#' This function compute the heterogeneity indices for a gridded landscape 
+#' @param DFgrid, Grid object from GridLandcsape function
+#' @return diversity indices
+#' @export
 ComputeBiodiversity <- function(DFGrid){
     iC <- which(!(substr(names(DFGrid),1,7) %in% c('Nclass_', 'BAclass', 'Iind',
 	 'Ncells', 'XCenter', 'YCenter', 'xgrid', 'ygrid', 'Res', 'N', 'Area', 'BA', 'Dg', 'NHA')))
@@ -128,7 +134,7 @@ ComputeBiodiversity <- function(DFGrid){
 
 #' Compute heterogeneity Index for a distribution landscape and a given resolution
 #'
-#' This function compute the heterogeneity indices for a landscape and a resolution
+#' This function compute the heterogeneity and biodiversity indices for a landscape and a resolution
 #' @param DF, data.frame of landscape data
 #' @param Res, numeric resolution (in km) of the grid
 #' @return Diversity indices
@@ -218,33 +224,9 @@ plot.Grid <- function(DFgrid){
     print(pl)#;dev.off()
 }
 
-plotAllGrid <- function(DFclass, Res=1){
-    plog <- function(x){
-        x[is.na(x)] <- 0
-        x <- x/sum(x)
-       -sum(x*log(x), na.rm=TRUE)
-    }
-    DFt <- NULL
-    for (i in 1:9){
-        DFgrid <-  GridLandscape(DFclass, Res=Res, N=i)
-        iClass  <- which(substr(names(DFgrid),1,7)=='Nclass_')
-        SH <- apply(DFgrid[, ..iClass], 1, plog)
-        DFgrid <- dplyr::mutate(DFgrid, Sh=SH)
-	DFt <- rbind(DFt, DFgrid)
-    }
-    DFt <- dplyr::filter(DFt, Area > (100 * Res^2 *.5))
-    pl <- ggplot2::ggplot(DFt, ggplot2::aes(xmin=xgrid-Res/2, xmax=xgrid+Res/2,
-	ymin=ygrid-Res/2, ymax=ygrid+Res/2, fill=Sh)) +
-        viridis::scale_fill_viridis() + #begin=0, end=2) +
-       	ggplot2::geom_rect() + ggplot2::facet_wrap(~N) +
-	ggplot2::theme(text=ggplot2::element_text(size=24)) +
-       	ggplot2::xlab('') + ggplot2::ylab('')
-    print(pl)
-}
-
-#' Compute Heterogeneity metrics for a different scales
+#' Compute Heterogeneity and biodiversitymetrics for a different scales
 #'
-#' This function compute the Shannon index for a landscape and a resolution
+#' This function compute the indices index for a landscape and a resolution
 #' @param DF, data.frame of distribution landscape data
 #' @param Res, numeric vector, resolution (in km) of the grid
 #' @return Plot
