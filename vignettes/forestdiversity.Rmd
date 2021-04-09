@@ -1,12 +1,12 @@
 ---
-title: "forestdiversity"
+title: forestdiversity
 output: rmarkdown::html_vignette
+fig_width: 2 
+fig_height: 2 
 vignette: >
   %\VignetteIndexEntry{forestdiversity}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
-fig_width: 9 
-fig_height: 6 
 ---
 
 
@@ -93,8 +93,7 @@ CalcDivIndex(PlotExample, Nvar = 'D_cm', ClassInter=10, ClassIni=5, type = 'BA',
 
 The function used in CalcDivIndex can be used independently.
 
-```
-```{r, echo = TRUE}
+```{r, echo = TRUE, fig.width=8, fig.asp=1}
 GiniPop(Size=PlotExample$D_cm, BA=PlotExample$D_cm^2, PLOT=TRUE)
 ```
 
@@ -120,7 +119,7 @@ The coord argument gives the dimension of the plot:
 The Nselec argument give the number of neighboors we should consider for each tree, by default it is 10 and should be left at this value
 
 We can plot the TabDis object 
-```{r, echo = TRUE}
+```{r, echo = TRUE, fig.width=8, fig.asp=1}
 plot(Td)
 ```
 
@@ -208,7 +207,7 @@ The value of postDisturbance (true / false) is specific for each year: each "nor
 When there is a disturbance, its values are false (same year but before disturbance) and true (same year but after disturbance).
 
 We first need to 'format' Salem outputs:
-```{r echo=TRUE}
+```{r, echo = TRUE, fig.width=8, fig.asp=0.7}
 DF <- format_salem(dataRaw=VirtualExperiment, ClassInter=10, ClassIni=7.5, type='BA')
 print(head(DF))
 plot(DF, Nvar='V_m3', RecTime=20, normalize='baseline')
@@ -250,7 +249,7 @@ The example object LandscapeExample has been obtained from landscape data with:
 ```{r eval=FALSE}
 DFc=LandscapeDBHtoClass(LandscapeExample, Nvar='D_cm', ClassInter=10, ClassIni=7.5)
 ```
-```{r echo=TRUE}
+```{r, echo = TRUE, fig.width=8, fig.asp=0.7}
 print(head(LandscapeExample))
 ggplot2::ggplot(LandscapeExample, ggplot2::aes(x=XCenter, y=YCenter, col=BA)) + ggplot2::geom_point() + viridis::scale_color_viridis()
 ```
@@ -263,7 +262,7 @@ This function will build a new grid with a resolution equal to Res and gather da
 
 As there is a large number of grid configuration possible, the argument N which range from 1 to 9, help produce 9 potential grid configuration to be able to produce variability due to different grid configurations.
 
-```{r echo=TRUE}
+```{r, echo = TRUE, fig.width=8, fig.asp=0.7}
 GridData=GridLandscape(LandscapeExample, Res=.5, N=1)
 print(head(GridData))
 plot(GridData)
@@ -271,7 +270,7 @@ plot(GridData)
 The GridLandscape function returns a data.frame at the new resolution, and just gather the data from the distribution dataset.
 It also computes the quadratic mean diameter (Dg), the total basal area (BA), the tree density (NHA), the number of initial cells within each grid point (Ncells) and their area.
 
-The function ComputeSh will compute different heterogeneity indices from the distriution dataset (here LandscapeExample).
+The function ComputeHeterogeneity will compute different heterogeneity indices from the distriution dataset (here LandscapeExample).
 The gridding process is performed within the function.
 
 1. alpha/beta/gamma diversity based on Richness (Nb of class)
@@ -280,14 +279,22 @@ The gridding process is performed within the function.
 4. The variance of the mean basal area in each grid point
 5. The variance of the mean quadratic diameter in each grid point
 
-For example to compute heterogeneity metrics at 0.1 km resolution :
+For example to compute heterogeneity metrics usind GridData :
 ```{r echo=TRUE}
-ComputeShScale(LandscapeExample, Res=0.1)
+ComputeHeterogeneity(GridData)
 ```
-All metrics are computed using 9 grid configuration (variable N in the data.frame).
+
+The function ComputeBuidiversity will compute for each diversity variable in the distribution data.frame the area weighted mean, 10 percentile and 90 percentiles.
+If variables VDW, LSDTN, LLTDN are present, it will add percentage of area above already fixed thresholds.
 
 ```{r echo=TRUE}
-plotHeterogeneityScale(LandscapeExample, Res=c(0.05, 0.1, 0.5), PLOT=TRUE)
+ComputeBiodiversity(GridData)
+```
+
+Both calculation can simply be performed using directly the distribution data.frame and the function ComputeHeterogeneityScale, with the wanted grain (still in km).
+In this case, calculation are made using the 9 grid configurations (variables N in the output).
+```{r echo=TRUE}
+ComputeHeterogeneityScale(LandscapeExample, Res=0.05)
 ```
 
 
