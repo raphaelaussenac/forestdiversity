@@ -51,103 +51,6 @@ LandscapeDBHtoClass <- function(DF, Nvar='D_cm', ClassInter=10, ClassIni=7.5){
     return(DFclass)
 }
 
-#' Compute heterogeneity Index for a gridded landscape
-#'
-#' This function compute the heterogeneity indices for a gridded landscape 
-#' @param DFgrid, Grid object from GridLandcsape function
-#' @return diversity indices
-#' @export
-ComputeHeterogeneity <- function(DFgrid){
-  plog <- function(x){
-        x[is.na(x)] <- 0
-        x <- x/sum(x)
-       -sum(x*log(x), na.rm=TRUE)
-  }
-  Nclass <- function(x){
-        x[is.na(x)] <- 0
-        sum(x>0)
-  }
-## Density proportion
-  iClass  <- which(substr(names(DFgrid),1,7)=='Nclass_')
-  SH <- apply(DFgrid[, ..iClass], 1, plog)
-  DFtot <- DFgrid[, ..iClass] * matrix(rep(DFgrid$Area, length(iClass)), nrow=dim(DFgrid)[1])
-  DFtot <- apply(DFtot, 2, sum, na.rm=TRUE) / sum(DFtot, na.rm=TRUE)
-  alpha <- exp(sum(DFgrid$Area*log(SH)*is.finite(log(SH)), na.rm=TRUE)/sum(DFgrid$Area)) 
-  gamma <- -sum(DFtot * log(DFtot), na.rm=TRUE) 
-  beta <- gamma/alpha
-## BA proportion
-  iClass  <- which(substr(names(DFgrid),1,8)=='BAclass_')
-  SH <- apply(DFgrid[, ..iClass], 1, plog)
-  DFtot <- DFgrid[, ..iClass] * matrix(rep(DFgrid$Area, length(iClass)), nrow=dim(DFgrid)[1])
-  DFtot <- apply(DFtot, 2, sum, na.rm=TRUE) / sum(DFtot, na.rm=TRUE)
-  alphaBA <- exp(sum(DFgrid$Area*log(SH)*is.finite(log(SH)), na.rm=TRUE)/sum(DFgrid$Area)) 
-  gammaBA <- -sum(DFtot * log(DFtot), na.rm=TRUE) 
-  betaBA <- gammaBA/alphaBA
-## Nb of class
-  alphaNcl <- sum(DFgrid$Area * (apply(DFgrid[, ..iClass], 1, Nclass))) / sum(DFgrid$Area)
-  gammaNcl <- Nclass(apply(DFgrid[, ..iClass], 2, sum))
-  betaNcl <- gammaNcl / alphaNcl
-  CVBA <- sum(DFgrid$Area * (DFgrid$BA - mean(DFgrid$BA))^2 / sum(DFgrid$Area))
-  CVDg <- sum(DFgrid$Area * (DFgrid$Dg - mean(DFgrid$Dg))^2 / sum(DFgrid$Area))
-  return(data.frame(alphaNcl=alphaNcl, betaNcl=betaNcl, gammaNcl=gammaNcl, alpha=alpha, beta=beta, gamma=gamma, 
-      alphaBA=alphaBA, betaBA=betaBA, gammaBA=gammaBA, CVBA=CVBA, CVDg=CVDg, Res=DFgrid$Res[1]))
-}
-
-#' Compute biodiversity Index for a gridded landscape
-#'
-#' This function compute the heterogeneity indices for a gridded landscape 
-#' @param DFgrid, Grid object from GridLandcsape function
-#' @return diversity indices
-#' @export
-ComputeBiodiversity <- function(DFGrid){
-    iC <- which(!(substr(names(DFGrid),1,7) %in% c('Nclass_', 'BAclass', 'Iind',
-	 'Ncells', 'XCenter', 'YCenter', 'xgrid', 'ygrid', 'Res', 'N', 'Area', 'BA', 'Dg', 'NHA')))
-    DFg <- DFGrid[, ..iC]
-    DFMean <- apply(DFg, 2, meanW, W=DFGrid$Area)
-    DF10 <- apply(DFg, 2, reldist::wtd.quantile, na.rm=TRUE, q=0.1, weight=DFGrid$Area)
-    DF90 <- apply(DFg, 2, reldist::wtd.quantile, na.rm=TRUE, q=0.9, weight=DFGrid$Area)
-    names(DF10) <- paste0(names(DF10), 'P10')
-    names(DF90) <- paste0(names(DF90), 'P90')
-    OUTThresh <- NULL
-    if ('VWD' %in% names(DFGrid)){
-        VDW20 <- sum(DFGrid$Area[DFGrid$VDW>=20]) * 1e-2
-        VDW60 <- sum(DFGrid$Area[DFGrid$VDW>=60]) * 1e-2
-        OUTThresh <- c(OUTThresh, VDW20, VDW60)
-    }
-    if ('LSDTN' %in% names(DFGrid)){
-        LSDTN1 <- sum(DFGrid$Area[DFGrid$LSDTN>=1]) / sum(DFGrid$Area)
-        LSDTN3 <- sum(DFGrid$Area[DFGrid$LSDTN>=3]) / sum(DFGrid$Area)
-        OUTThresh <- c(OUTThresh, LSDTN1, LSDTN3)
-    }
-    if ('LLDTN' %in% names(DFGrid)){
-        LLDTN2 <- sum(DFGrid$Area[DFGrid$VLLTN>=2]) / sum(DFGrid$Area)
-        LLDTN6 <- sum(DFGrid$Area[DFGrid$VLLTN>=6]) / sum(DFGrid$Area)
-        OUTThresh <- c(OUTThresh, LLDTN2, LLDTN6)
-    }
-    if (is.null(OUTThresh)){
-        OUT <- data.frame(t(DFMean), t(DF10), t(DF90))
-    }else{
-        OUT <- data.frame(t(DFMean), t(DF10), t(DF90),  t(OUTThresh))
-    }
-    return(OUT)
-}
-
-#' Compute heterogeneity Index for a distribution landscape and a given resolution
-#'
-#' This function compute the heterogeneity and biodiversity indices for a landscape and a resolution
-#' @param DF, data.frame of landscape data
-#' @param Res, numeric resolution (in km) of the grid
-#' @return Diversity indices
-#' @export
-ComputeHeterogeneityScale <- function(DF, Res=1){
-  SH <- NULL
-    for (N in 1:9){
-    DFi <- GridLandscape(DF, Res=Res, N=N)
-    SH <- rbind(SH, cbind(ComputeHeterogeneity(DFi), ComputeBiodiversity(DFi)))
-  }
-  return(dplyr::mutate(SH, N=1:9))
-}
-
 #' Compute a gridded landscape
 #'
 #' This function compute the gridded landscape
@@ -223,6 +126,114 @@ plot.Grid <- function(DFgrid){
 #    png(file=paste0('Grid',Res,'.png'), width=1800, height=1200,res=120)
     print(pl)#;dev.off()
 }
+#' Compute heterogeneity Index for a gridded landscape
+#'
+#' This function compute the heterogeneity indices for a gridded landscape 
+#' @param DFgrid, Grid object from GridLandcsape function
+#' @return diversity indices
+#' @export
+ComputeHeterogeneity <- function(DFgrid){
+  plog <- function(x){
+        x[is.na(x)] <- 0
+        x <- x/sum(x)
+       -sum(x*log(x), na.rm=TRUE)
+  }
+  Nclass <- function(x){
+        x[is.na(x)] <- 0
+        sum(x>0)
+  }
+## Density proportion
+  iClass  <- which(substr(names(DFgrid),1,7)=='Nclass_')
+  SH <- apply(DFgrid[, ..iClass], 1, plog)
+  DFtot <- DFgrid[, ..iClass] * matrix(rep(DFgrid$Area, length(iClass)), nrow=dim(DFgrid)[1])
+  DFtot <- apply(DFtot, 2, sum, na.rm=TRUE) / sum(DFtot, na.rm=TRUE)
+  alpha <- exp(sum(DFgrid$Area*log(SH)*is.finite(log(SH)), na.rm=TRUE)/sum(DFgrid$Area)) 
+  gamma <- -sum(DFtot * log(DFtot), na.rm=TRUE) 
+  beta <- gamma/alpha
+## BA proportion
+  iClass  <- which(substr(names(DFgrid),1,8)=='BAclass_')
+  SH <- apply(DFgrid[, ..iClass], 1, plog)
+  DFtot <- DFgrid[, ..iClass] * matrix(rep(DFgrid$Area, length(iClass)), nrow=dim(DFgrid)[1])
+  DFtot <- apply(DFtot, 2, sum, na.rm=TRUE) / sum(DFtot, na.rm=TRUE)
+  alphaBA <- exp(sum(DFgrid$Area*log(SH)*is.finite(log(SH)), na.rm=TRUE)/sum(DFgrid$Area)) 
+  gammaBA <- -sum(DFtot * log(DFtot), na.rm=TRUE) 
+  betaBA <- gammaBA/alphaBA
+## Nb of class
+  alphaNcl <- sum(DFgrid$Area * (apply(DFgrid[, ..iClass], 1, Nclass))) / sum(DFgrid$Area)
+  gammaNcl <- Nclass(apply(DFgrid[, ..iClass], 2, sum))
+  betaNcl <- gammaNcl / alphaNcl
+  CVBA <- sum(DFgrid$Area * (DFgrid$BA - mean(DFgrid$BA))^2 / sum(DFgrid$Area))
+  return(data.frame(alphaNcl=alphaNcl, betaNcl=betaNcl, gammaNcl=gammaNcl, alpha=alpha, beta=beta, gamma=gamma, 
+      alphaBA=alphaBA, betaBA=betaBA, gammaBA=gammaBA, CVBA=CVBA, Res=DFgrid$Res[1]))
+}
+
+#' Compute biodiversity Index for a gridded landscape
+#'
+#' This function compute the heterogeneity indices for a gridded landscape 
+#' @param DFgrid, Grid object from GridLandcsape function
+#' @return diversity indices
+#' @export
+ComputeBiodiversity <- function(DFGrid){
+    iC <- which(!(substr(names(DFGrid),1,7) %in% c('Nclass_', 'BAclass', 'Iind',
+	 'Ncells', 'XCenter', 'YCenter', 'xgrid', 'ygrid', 'Res', 'N', 'Area', 'BA', 'Dg', 'NHA')))
+    DFg <- DFGrid[, ..iC]
+    DFMean <- apply(DFg, 2, meanW, W=DFGrid$Area)
+    DF10 <- apply(DFg, 2, reldist::wtd.quantile, na.rm=TRUE, q=0.1, weight=DFGrid$Area)
+    DF90 <- apply(DFg, 2, reldist::wtd.quantile, na.rm=TRUE, q=0.9, weight=DFGrid$Area)
+    names(DF10) <- paste0(names(DF10), 'P10')
+    names(DF90) <- paste0(names(DF90), 'P90')
+    OUTThresh <- NULL
+    if ('VDW' %in% names(DFGrid)){
+        VDW20 <- sum(DFGrid$Area[DFGrid$VDW>=20]) * 1e-2
+        VDW60 <- sum(DFGrid$Area[DFGrid$VDW>=60]) * 1e-2
+	temp <- c(VDW20, VDW60);names(temp) <- c('VDW20', 'VDW60')
+        OUTThresh <- c(OUTThresh, temp)
+    }
+    if ('LSDTN' %in% names(DFGrid)){
+        LSDTN1 <- sum(DFGrid$Area[DFGrid$LSDTN>=1]) / sum(DFGrid$Area)
+        LSDTN3 <- sum(DFGrid$Area[DFGrid$LSDTN>=3]) / sum(DFGrid$Area)
+	temp <- c(LSDTN1, LSDTN3);names(temp) <- c('LSDTN1', 'LSDTN3')
+        OUTThresh <- c(OUTThresh, temp)
+    }
+    if ('LLDTN' %in% names(DFGrid)){
+        LLDTN2 <- sum(DFGrid$Area[DFGrid$VLLTN>=2]) / sum(DFGrid$Area)
+        LLDTN6 <- sum(DFGrid$Area[DFGrid$VLLTN>=6]) / sum(DFGrid$Area)
+	temp <- c(LLDTN2, LLDTN6);names(temp) <- c('LLDTN2', 'LLDTN6')
+        OUTThresh <- c(OUTThresh, temp)
+    }
+    if ('Cover' %in% names(DFGrid)){
+	Cover50 <- sum(DFGrid$Area[DFGrid$Cover>=50]) / sum(DFGrid$Area)
+        temp <- Cover50; names(temp) <- 'Cover50'
+	OUTThresh <- c(OUTThresh, temp)
+    }
+    if (is.null(OUTThresh)){
+        OUT <- data.frame(t(DFMean), t(DF10), t(DF90))
+    }else{
+        OUT <- data.frame(t(DFMean), t(DF10), t(DF90),  t(OUTThresh))
+    }
+    return(OUT)
+}
+
+#' Compute heterogeneity and biodiversity metrics for a distribution landscape and a given resolution
+#'
+#' This function compute the heterogeneity and biodiversity indices for a landscape and a resolution
+#' @param DF, data.frame of landscape data
+#' @param Res, numeric resolution (in km) of the grid
+#' @param Out, str, if equal Mean return mean over grid configuration, otherwise return for each configuration
+#' @return Diversity indices
+#' @export
+ComputeHeterogeneityScale <- function(DF, Res=1, Out='Mean'){
+    SH <- NULL
+        for (N in 1:9){
+        DFi <- GridLandscape(DF, Res=Res, N=N)
+        SH <- rbind(SH, cbind(ComputeHeterogeneity(DFi), ComputeBiodiversity(DFi)))
+    }
+    if (Out=='Mean'){
+        return(apply(SH, 2, mean))
+    }else{
+        return(dplyr::mutate(SH, N=1:9))
+    }
+}
 
 #' Compute Heterogeneity and biodiversitymetrics for a different scales
 #'
@@ -232,14 +243,13 @@ plot.Grid <- function(DFgrid){
 #' @return Plot
 #' @export
 ComputeHeterogeneityMultiScale <- function(DF, Res=c(0.05, 0.1, 1, 2, 5), PLOT=FALSE){
-    HetMultiscale <- do.call(rbind, lapply(Res, ComputeHeterogeneityScale, DF=DF))
+    HetMultiscale <- do.call(rbind, lapply(Res, ComputeHeterogeneityScale, DF=DF, Out='All'))
     HetMultiscale <- data.table::as.data.table(HetMultiscale)
     HetMultiscaleMean <- HetMultiscale[, lapply(.SD, mean, na.rm=TRUE), by=Res]
     names(HetMultiscaleMean) <- paste0('Mean', names(HetMultiscaleMean))
     HetMultiscaleSD <- HetMultiscale[, lapply(.SD, sd, na.rm=TRUE), by=Res]
     names(HetMultiscaleSD) <- paste0('SD', names(HetMultiscaleSD))
     OUT <- cbind(HetMultiscaleMean, HetMultiscaleSD)
-    print(OUT)
     p1 <- ggplot2::ggplot(OUT, ggplot2::aes(x=Res)) + ggplot2::geom_pointrange(ggplot2::aes(y=Meanalpha,
 	ymin=Meanalpha-2*SDalpha, ymax=Meanalpha+2*SDalpha)) + 
         ggplot2::geom_line(ggplot2::aes(y=Meanalpha)) + ggplot2::theme(text=ggplot2::element_text(size=24)) +
@@ -252,11 +262,12 @@ ComputeHeterogeneityMultiScale <- function(DF, Res=c(0.05, 0.1, 1, 2, 5), PLOT=F
 	ymin=MeanCVBA-2*SDCVBA, ymax=MeanCVBA+2*SDCVBA), col='red') +
         ggplot2::geom_line(ggplot2::aes(y=MeanCVBA), col='red') + ggplot2::theme(text=ggplot2::element_text(size=24)) +
         ggplot2::xlab('Grain') + ggplot2::ylab('Basal area variance')
-    p4 <- ggplot2::ggplot(OUT, ggplot2::aes(x=Res)) + ggplot2::geom_pointrange(ggplot2::aes(y=MeanCVDg,
-	ymin=MeanCVDg-2*SDCVDg, ymax=MeanCVDg+2*SDCVDg), col='red') +
-        ggplot2::geom_line(ggplot2::aes(y=MeanCVDg), col='red') + ggplot2::theme(text=ggplot2::element_text(size=24)) +
-        ggplot2::xlab('Grain') + ggplot2::ylab('Quadratic diameter variance')
-    pl <- multiplot(p1, p2, p3, p4, cols=2)
+    p4 <- ggplot2::ggplot(OUT, ggplot2::aes(x=Res)) + ggplot2::geom_pointrange(ggplot2::aes(y=MeanCoverP90,
+	ymin=MeanCoverP90-2*SDCoverP90, ymax=MeanCoverP90+2*SDCoverP90), col='red') +
+        ggplot2::geom_line(ggplot2::aes(y=MeanCoverP90), col='red') + ggplot2::theme(text=ggplot2::element_text(size=24)) +
+        ggplot2::xlab('Grain') + ggplot2::ylab('9th Decile of canopy cover')
+
+    pl <- multiplot(p1, p3, p2, p4, cols=2)
     if (PLOT==TRUE){print(pl)}
     return(OUT)
 }
