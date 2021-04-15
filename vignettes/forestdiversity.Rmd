@@ -22,21 +22,34 @@ require(forestdiversity)
 knitr::opts_chunk$set(fig.width=12, fig.height=12)
 ```
 
-# Diversity/heterogeneity indices
-Diversity indices can be calculated using whether species or size classes.
+# Stand heterogeneity indices
+
+A stand dataset is defined as a data.frame describing trees attribute.
+The dataset must contain at least these variables:
+
+\begin{itemize}
+    \item species names, variable name must be 'species'
+    \item a size variable, usually size diameter at breast height, variable name must be 'D_cm'
+\end{itemize}
+
+Each line can represent a unique tree, or a number of trees for its species/size couple. 
+In the latter case a variable named 'weigth' must give this number of trees (not necessarily an integer).
+
+## Non Spatial indices
+Heterogeneity indices can be calculated using whether species or size classes.
 
 Two different kind of indices can be computed:
 
 1. Hill Numbers
 2. Entropy based indices
 
-## Computation of Hill numbers
+### Computation of Hill numbers
 
 1. H0 = Number of class (Richness)
 2. H1
 3. H2
 
-## Computation of entropy based indices
+### Computation of entropy based indices
 
 Indices computed are 
 
@@ -47,7 +60,7 @@ Indices computed are
 When the variable we used to compute indices is not species, we can also compute the Gini Index.
 Here the Gini index is systematically based on proportion of basal area.
 
-## Details on indices
+### Details on indices
 
 If we $p_i$ the proportion of each class and N the total number of classes:
 
@@ -59,7 +72,7 @@ If we $p_i$ the proportion of each class and N the total number of classes:
 
 The proportion $p_i$ can be calculated on proportion of trees (i.e. the proportion of trees in each species/size class) or as the proportion of basal area (the proportion of total basal area within each species/size class).
 
-## Example
+### Example
 
 If we want to compute Hill numbers on species and based on density:
 
@@ -91,15 +104,17 @@ CalcDivIndex(PlotExample, Nvar = 'D_cm', ClassInter=10, ClassIni=5, type = 'Dens
 CalcDivIndex(PlotExample, Nvar = 'D_cm', ClassInter=10, ClassIni=5, type = 'BA', Out='HillNb')
 ```
 
-The function used in CalcDivIndex can be used independently.
+The function GiniPop used in CalcDivIndex can be used independently.
+If the argument PLOT is TRUE, it will return a graph of the Lorenz curve.
 
 ```{r, echo = TRUE, fig.width=8, fig.asp=1}
 GiniPop(Size=PlotExample$D_cm, BA=PlotExample$D_cm^2, PLOT=TRUE)
 ```
 
-# Spatial metrics
+## Spatial metrics
 
-We have a dataset named named PlotExample with at least trees species, DBH, and location in X / Y:
+If tree location are known in the stand, spatial heterogeneity indices can be computed.
+As an example, we have a dataset named named PlotExample with at least trees species, D_cm, and location in X / Y:
 
 ```{r, echo = TRUE}
 print(head(PlotExample))
@@ -137,7 +152,7 @@ We then compute the mean of these fractions.
 ```{r, echo = TRUE}
 Compute_mingling(Td, Nk=4, EdgeCorrection="NN1")
 ```
-For Nk number of neighboors (here 4) we get M the mingling index for k neighboors.
+For Nk number of neighboors (here 4) we get M the mingling index for Nk neighboors.
 Em is the expected mingling index in case of independent species, and does not depend on the number of neighboors.
 Phi is simply $1 - \frac{M}{Em}$ : if phi is 0 then species in the plot are independantly organized, if phi is 1 then species seggregation is maximum, and if phi is -1 then attraction of different species is maximum.
 
@@ -227,7 +242,7 @@ The function EventResilience can then be used to compute the recovery metrics.
 I will compute an initial state which is meant over all the years classified as preDisturbance==TRUE, that is all the years before the Event.
 
 ```{r echo=TRUE}
-E <- EventResilience(DF, Nvar='V_m3', RecTime=20, normalize='baseline')
+E <- EventResilience(DF, Nvar='V_m3', RecTime=20, normalize='impact')
 print(head(E))
 ```
 
@@ -277,14 +292,13 @@ The gridding process is performed within the function.
 2. alpha/beta/gamma diversity based on shannon from proportion based on density
 3. alpha/beta/gamma diversity based on shannon from proportion based on basal area
 4. The variance of the mean basal area in each grid point
-5. The variance of the mean quadratic diameter in each grid point
 
 For example to compute heterogeneity metrics usind GridData :
 ```{r echo=TRUE}
 ComputeHeterogeneity(GridData)
 ```
 
-The function ComputeBuidiversity will compute for each diversity variable in the distribution data.frame the area weighted mean, 10 percentile and 90 percentiles.
+The function ComputeBuidiversity will compute, for each diversity variable in the distribution data.frame, the area weighted mean, 10 percentile and 90 percentiles.
 If variables VDW, LSDTN, LLTDN are present, it will add percentage of area above already fixed thresholds.
 
 ```{r echo=TRUE}
@@ -292,9 +306,14 @@ ComputeBiodiversity(GridData)
 ```
 
 Both calculation can simply be performed using directly the distribution data.frame and the function ComputeHeterogeneityScale, with the wanted grain (still in km).
-In this case, calculation are made using the 9 grid configurations (variables N in the output).
+In this case, calculation are made using the 9 grid configurations and the output is the mean of indices overe these configuratios.
 ```{r echo=TRUE}
-ComputeHeterogeneityScale(LandscapeExample, Res=0.05)
+ComputeHeterogeneityScale(LandscapeExample, Res=0.05, Out='Mean')
+```
+
+The function can be applied on several grains, by using 
+```{r echo=TRUE}
+DF <- ComputeHeterogeneityMultiScale(LandscapeExample, Res=c(0.05, 0.1, 0.5, 1), PLOT=TRUE)
 ```
 
 
