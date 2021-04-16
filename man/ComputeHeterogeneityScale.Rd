@@ -2,14 +2,16 @@
 % Please edit documentation in R/LandScapeIndex.R
 \name{ComputeHeterogeneityScale}
 \alias{ComputeHeterogeneityScale}
-\title{Compute heterogeneity Index for a distribution landscape and a given resolution}
+\title{Compute heterogeneity and biodiversity metrics for a distribution landscape and a given resolution}
 \usage{
-ComputeHeterogeneityScale(DF, Res = 1)
+ComputeHeterogeneityScale(DF, Res = 1, Out = "Mean")
 }
 \arguments{
 \item{DF, }{data.frame of landscape data}
 
 \item{Res, }{numeric resolution (in km) of the grid}
+
+\item{Out, }{str, if equal Mean return mean over grid configuration, otherwise return for each configuration}
 }
 \value{
 Diversity indices
