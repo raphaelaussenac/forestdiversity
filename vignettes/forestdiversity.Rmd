@@ -21,6 +21,7 @@ devtools::install_gitlab('arnaud.guyennon/forestdiversity')
 ```{r setup, include = FALSE}
 require(forestdiversity)
 knitr::opts_chunk$set(fig.width=12, fig.height=12)
+options(scipen = 3, digits = 3)
 ```
 
 # Stand heterogeneity indices
