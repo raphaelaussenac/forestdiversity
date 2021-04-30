@@ -69,25 +69,27 @@ TabDist <- function(DF, shape="quadrat", coord, Nselec = 10){
 #' @export
 plot.DistanceTab <- function(Tdis, Nk=4){
     Plot <- Tdis$DF
-    Plot <- Plot[, .(species=sp1[1], DBH1=DBH1[1], ClassSize=ClassSize1[1],
+    Plot <- Plot[, .(species=sp1[1], DBH=DBH1[1], ClassSize=ClassSize1[1],
         X=X1[1], Y=Y1[1], AllIn=(Dis[Nk]<=DisToBord[Nk]), InCoord=InCoord[1]), by='V1']
     Plot$AllIn[Plot$InCoord==FALSE] <- FALSE
   if (Tdis$shape=='quadrat'){
     pl <- ggplot2::ggplot() + ggplot2::theme(text=ggplot2::element_text(size=20)) + 
-          ggplot2::geom_point(data=dplyr::filter(Plot, AllIn==TRUE), ggplot2::aes(x=X, y=Y, col=species, size= DBH1),pch=19) + 
-	  ggplot2::geom_point(data=dplyr::filter(Plot, AllIn==FALSE), ggplot2::aes(x=X, y=Y, col=species, size= DBH1), pch=1) +
-          ggplot2::geom_rect(ggplot2::aes(xmin=Tdis$coord[1], xmax=Tdis$coord[2], ymin=Tdis$coord[3], ymax=Tdis$coord[4]), fill=NA,col='black')
+          ggplot2::geom_point(data=dplyr::filter(Plot, AllIn==TRUE), ggplot2::aes(x=X, y=Y, col=species, size= DBH),pch=19) + 
+	  ggplot2::geom_point(data=dplyr::filter(Plot, AllIn==FALSE), ggplot2::aes(x=X, y=Y, col=species, size= DBH), pch=1) +
+          ggplot2::geom_rect(ggplot2::aes(xmin=Tdis$coord[1], xmax=Tdis$coord[2], ymin=Tdis$coord[3], ymax=Tdis$coord[4]), fill=NA,col='black') +
+	  ggplot2::xlab('X (m)') + ggplot2::ylab('Y (m)')
   }else if (Tdis$shape=='circular'){
     pl <- ggplot2::ggplot() + ggplot2::theme(text=ggplot2::element_text(size=20)) + 
-          ggplot2::geom_point(data=dplyr::filter(Plot, AllIn==TRUE), ggplot2::aes(x=X, y=Y, fill=species, size= DBH1),pch=21) + 
-	  ggplot2::geom_point(data=dplyr::filter(Plot, AllIn==FALSE), ggplot2::aes(x=X, y=Y, col=species, size= DBH1), pch=1)
+          ggplot2::geom_point(data=dplyr::filter(Plot, AllIn==TRUE), ggplot2::aes(x=X, y=Y, fill=species, size= DBH),pch=21) + 
+	  ggplot2::geom_point(data=dplyr::filter(Plot, AllIn==FALSE), ggplot2::aes(x=X, y=Y, col=species, size= DBH), pch=1) +
+	  ggplot2::xlab('X (m)') + ggplot2::ylab('Y (m)')
   }
 
   Ming <- round(Compute_mingling(Tdis, Nk=Nk)$phi, digits=2)
   SizeDiff <- round(Compute_Size_Diff(Tdis, Nk=Nk)$phi, digits=2)
   Wink <- round(Compute_Winkelmass(Tdis, Nk=Nk), digits=2)
 
-  Title <- paste('Mingling Phi :', Ming, '\nSize Differentiation Phi:', SizeDiff, '\nWinkemass index : ', Wink, sep='')
+  Title <- paste('Mingling index Phi :', Ming, '\nSize Differentiation index Phi:', SizeDiff, '\nWinkemass index : ', Wink, sep='')
   pl <- pl + ggplot2::ggtitle(Title)
   print(pl)
 }
