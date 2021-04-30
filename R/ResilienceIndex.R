@@ -194,24 +194,24 @@ plot.VirtualExperiment <- function(dataSet, Nvar='BA', RecTime=20, normalize='ba
 	ggplot2::geom_vline(ggplot2::aes(xintercept=Tf), linetype=2) +
 	ggplot2::geom_vline(ggplot2::aes(xintercept=Tx), linetype=2) + 
 	ggplot2::geom_vline(ggplot2::aes(xintercept=Td), linetype=2) +
-	ggplot2::geom_text(ggplot2::aes(y=0, x=1+Tf, label='Tf'), size=6) +
-	ggplot2::geom_text(ggplot2::aes(y=0, x=1+Tx, label='Tx'), size=6) +
-	ggplot2::geom_text(ggplot2::aes(y=0, x=Td, label='Td'), size=6) +
-	ggplot2::geom_text(ggplot2::aes(y=C0*1.05, x=1+Td, label='Y0=Yd'), size=6) +
-	ggplot2::geom_text(ggplot2::aes(y=Pd*0.95, x=1+Td, label='Pd'), size=6) +
-	ggplot2::geom_text(ggplot2::aes(y=Px*0.95, x=1+Tx, label='Px'), size=6) +
+	ggplot2::geom_text(ggplot2::aes(y=0, x=1+Tf, label='Tf'), size=4) +
+	ggplot2::geom_text(ggplot2::aes(y=0, x=1+Tx, label='Tx'), size=4) +
+	ggplot2::geom_text(ggplot2::aes(y=0, x=Td, label='Td'), size=4) +
+	ggplot2::geom_text(ggplot2::aes(y=C0*1.1, x=1+Td, label='Y0=Yd'), size=4) +
+	ggplot2::geom_text(ggplot2::aes(y=Pd*0.9, x=1+Td, label='Pd'), size=4) +
+	ggplot2::geom_text(ggplot2::aes(y=Px*0.9, x=1+Tx, label='Px'), size=4) +
 	ggplot2::geom_point(data=dataSet, ggplot2::aes(x=year, y=Var, col=preDisturbance), size=2) +
 	ggplot2::geom_line(data=dataSet, ggplot2::aes(x=year, y=Var)) +
 	ggplot2::geom_ribbon(data=dplyr::filter(Area, year<=Tf, year>=T0), ggplot2::aes(x=year, ymin=C0, ymax=Var), alpha=0.7, fill='yellow') +
 	ggplot2::geom_ribbon(data=dplyr::filter(Area, year>=Tf,year<=Tx), ggplot2::aes(x=year, ymin=C0, ymax=Var), alpha=0.4, fill='yellow') +
 	ggplot2::geom_ribbon(data=dplyr::filter(Area, year<=Tf, year>=T0), ggplot2::aes(x=year, ymin=0*C0, ymax=C0), alpha=0.2, fill='red') +
 	ggplot2::scale_color_manual(values=c('red', 'blue')) +
-	ggplot2::facet_wrap(~site, scales='free') + ggplot2::theme_bw(base_size=16) +
+	ggplot2::facet_wrap(~site, scales='free', ncol=1) + ggplot2::theme_bw(base_size=16) +
 	ggplot2::xlab('Years')
     }else if(dataSet$CONTROL[1]==TRUE){
         pl <- ggplot2::ggplot(data=dataSet, ggplot2::aes(x=year,y=Var, size=2)) +
 	    ggplot2::geom_line() +
-	    ggplot2::facet_wrap(~site, scales='free') + ggplot2::theme_bw(base_size=16)
+	    ggplot2::facet_wrap(~site, scales='free', ncol=1) + ggplot2::theme_bw(base_size=16)
     }
     print(pl)
 }
