@@ -162,9 +162,10 @@ ComputeHeterogeneity <- function(DFgrid){
   alphaNcl <- sum(DFgrid$Area * (apply(DFgrid[, ..iClass], 1, Nclass))) / sum(DFgrid$Area)
   gammaNcl <- Nclass(apply(DFgrid[, ..iClass], 2, sum))
   betaNcl <- gammaNcl / alphaNcl
-  CVBA <- sum(DFgrid$Area * (DFgrid$BA - mean(DFgrid$BA))^2 / sum(DFgrid$Area))
+  CVBA <- sqrt(sum(DFgrid$Area * (DFgrid$BA - mean(DFgrid$BA))^2 / sum(DFgrid$Area)))
+  CVNHA <- sqrt(sum(DFgrid$Area * (DFgrid$NHA - mean(DFgrid$NHA))^2 / sum(DFgrid$Area)))
   return(data.frame(alphaNcl=alphaNcl, betaNcl=betaNcl, gammaNcl=gammaNcl, alpha=alpha, beta=beta, gamma=gamma, 
-      alphaBA=alphaBA, betaBA=betaBA, gammaBA=gammaBA, CVBA=CVBA, Res=DFgrid$Res[1]))
+      alphaBA=alphaBA, betaBA=betaBA, gammaBA=gammaBA, CVBA=CVBA, CVNHA=CVNHA, Res=DFgrid$Res[1]))
 }
 
 #' Compute biodiversity Index for a gridded landscape
@@ -202,8 +203,8 @@ ComputeBiodiversity <- function(DFGrid){
         OUTThresh <- c(OUTThresh, temp)
     }
     if ('Cover' %in% names(DFGrid)){
-	Cover50 <- sum(DFGrid$Area[DFGrid$Cover>=50]) / sum(DFGrid$Area)
-        temp <- Cover50; names(temp) <- 'Cover50'
+        CVCover <- sum(DFGrid$Area * (DFGrid$Cover - mean(DFGrid$Cover))^2 / sum(DFGrid$Area))
+        temp <- CVCover; names(temp) <- 'Variance of Cover'
 	OUTThresh <- c(OUTThresh, temp)
     }
     if (is.null(OUTThresh)){
@@ -266,7 +267,6 @@ ComputeHeterogeneityMultiScale <- function(DF, Res=c(0.05, 0.1, 1, 2, 5), PLOT=F
 	ymin=MeanCoverP90-2*SDCoverP90, ymax=MeanCoverP90+2*SDCoverP90), col='red') +
         ggplot2::geom_line(ggplot2::aes(y=MeanCoverP90), col='red') + ggplot2::theme(text=ggplot2::element_text(size=24)) +
         ggplot2::xlab('Grain') + ggplot2::ylab('9th Decile of canopy cover')
-
     pl <- multiplot(p1, p3, p2, p4, cols=2)
     if (PLOT==TRUE){print(pl)}
     return(OUT)
