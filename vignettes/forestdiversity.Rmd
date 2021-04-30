@@ -1,6 +1,7 @@
 ---
 title: forestdiversity
 output: rmarkdown::html_vignette
+#output: rmarkdown::word_document
 fig_width: 2 
 fig_height: 2 
 vignette: >
@@ -24,18 +25,17 @@ knitr::opts_chunk$set(fig.width=12, fig.height=12)
 
 # Stand heterogeneity indices
 
-A stand dataset is defined as a data.frame describing trees attribute.
+A stand dataset is defined as a data.frame describing trees attributes.
 The dataset must contain at least these variables:
 
-\begin{itemize}
-    \item species names, variable name must be 'species'
-    \item a size variable, usually size diameter at breast height, variable name must be 'D_cm'
-\end{itemize}
+1. species names, variable name must be 'species'
+2. a size variable, usually diameter at breast height, variable name must be 'D_cm'
 
 Each line can represent a unique tree, or a number of trees for its species/size couple. 
 In the latter case a variable named 'weigth' must give this number of trees (not necessarily an integer).
 
-## Non Spatial indices
+## Non spatial indices
+These indices do not require tree coordinates.
 Heterogeneity indices can be calculated using whether species or size classes.
 
 Two different kind of indices can be computed:
@@ -45,44 +45,46 @@ Two different kind of indices can be computed:
 
 ### Computation of Hill numbers
 
-1. H0 = Number of class (Richness)
-2. H1
-3. H2
+1. H0 = Number of classes (Richness)
+2. H1 = exponential of the Shannon entropy index
+3. H2 = inverse of the Simpson index
 
 ### Computation of entropy based indices
 
 Indices computed are 
 
 1. Number of classes (Richness)
-2. Shannon Index
-3. Simpson Index
+2. Shannon index
+3. Simpson index
 
 When the variable we used to compute indices is not species, we can also compute the Gini Index.
-Here the Gini index is systematically based on proportion of basal area.
+Here the Gini index is systematically based on proportions of basal area.
 
 ### Details on indices
 
-If we $p_i$ the proportion of each class and N the total number of classes:
+We note $p_i$ the proportion of class i and N the total number of classes:
 
-1. $Nclass = N$ (=H0)
+1. $Nclass = N$
 
-2. $Shannon = \sum_{i=1}^{i=N}( - p_i * log(p_i))$ (=log(H1))
+2. $Shannon = \sum_{i=1}^{i=N}( - p_i * log(p_i))$
 
-3. $Simpson = \sum_{i=1}^{i=N}(p_i^2)$ (=$\dfrac{1}{H2}$)
+3. $Simpson = \sum_{i=1}^{i=N}(p_i^2) = \dfrac{1}{H2}$
 
-The proportion $p_i$ can be calculated on proportion of trees (i.e. the proportion of trees in each species/size class) or as the proportion of basal area (the proportion of total basal area within each species/size class).
+The proportion $p_i$ can be calculated using tree density (i.e. the proportion of trees in each species/size class) or basal area (i.e the proportion of basal area within each species/size class).
 
 ### Example
 
-If we want to compute Hill numbers on species and based on density:
+Here we want to compute Hill numbers for species using tree density:
 
 ```{r, echo = TRUE}
 CalcDivIndex(PlotExample, Nvar = 'species', type = 'Density', Out='HillNb')
 ```
 
-N.B. : if present, the function CalcDivIndex compute the diversity indices for each year/site/src/postThinning/postDisturbance within the dataset. If no weight is present in the dataset, they will be set to 1.
+N.B.: if specified, the function CalcDivIndex computes the diversity indices for each year/site/src/postThinning/postDisturbance within the dataset.
+Variables src stand for the source of data (i.e. observation or name of the model), postThinning and postDisturbance are variables link do disturbance scenarii.
+If no weights are given in the dataset, they will be set to 1.
 
-To compute diversity indices based on basal area: 
+To compute diversity indices using basal area: 
 
 ```{r, echo = TRUE}
 CalcDivIndex(PlotExample, Nvar = 'species', type = 'BA', Out='HillNb')
@@ -114,7 +116,7 @@ GiniPop(Size=PlotExample$D_cm, BA=PlotExample$D_cm^2, PLOT=TRUE)
 ## Spatial metrics
 
 If tree location are known in the stand, spatial heterogeneity indices can be computed.
-As an example, we have a dataset named named PlotExample with at least trees species, D_cm, and location in X / Y:
+As an example, we have a dataset named PlotExample with tree species, tree diameters (D_cm), tree locations in X / Y, and tree heights (H_m):
 
 ```{r, echo = TRUE}
 print(head(PlotExample))
@@ -131,36 +133,37 @@ The coord argument gives the dimension of the plot:
 1. if shape=='quadrat' : coord=(xmin, xmax, ymin, ymax) in meters
 2. if shape=='circular : coord=radius (in meter)
 
-The Nselec argument give the number of neighboors we should consider for each tree, by default it is 10 and should be left at this value
+The Nselec argument gives the number of neighboors we should consider for each tree.
+By default it is 10 and it is recommended to keep this value.
 
 We can plot the TabDis object 
 ```{r, echo = TRUE, fig.width=8, fig.asp=1}
 plot(Td)
 ```
 
-We see in the figure the trees that will be used in further calculation (i.e. not to close to the border of the plot) and the border of the plot.
-Circles without color will be discarded because they are too close to the border.
+We see in the figure the trees that will be used in further calculations (i.e. not too close to the borders of the plot).
+Empty circles will be discarded because they are too close to the borders.
 
 Several metrics can then be computed, for each we need to select the number of neighboors that will be used (by default 4) and the type of correction we want to apply to take into account the border effect (by default 'NN1').
 
 ## The mingling index
 
 The mingling index (Pommerening et al, 2017) is defined as the "mean heterospecific fraction of plants among the k nearest neighbours of a given plant i."
-For each tree in the plot, we compute the fraction of tree in the neighboorhood that belong to the same species as this tree.
+For each tree in the plot, we compute the fraction of trees in the neighboorhood that belong to the same species as this tree.
 We then compute the mean of these fractions.
 
 ```{r, echo = TRUE}
 Compute_mingling(Td, Nk=4, EdgeCorrection="NN1")
 ```
-For Nk number of neighboors (here 4) we get M the mingling index for Nk neighboors.
+For Nk number of neighboors (by default 4) we get M the mingling index for Nk neighboors.
 Em is the expected mingling index in case of independent species, and does not depend on the number of neighboors.
-Phi is simply $1 - \frac{M}{Em}$ : if phi is 0 then species in the plot are independantly organized, if phi is 1 then species seggregation is maximum, and if phi is -1 then attraction of different species is maximum.
+Phi is simply $1 - \frac{M}{Em}$ : if phi is 0 then species in the plot are independently organized, if phi is 1 then species seggregation is maximum, and if phi is -1 then attraction of different species is maximum.
 
 Pommerening et al, 2017 presented their results using 3 neighboors, in IMaestro we use 4 as suggested by Aguirre (2003).
 
-## The Size Differentiation index
+## The size differentiation index
 The size differentiation index (Pommerening et al, 2017) is the "mean of the ratio of smaller and larger plant sizes u of the k nearest neighbours subtracted from one."
-For each tree i, we select the k closest neighboors (by default 4) and compute $T_i=\frac{1}{k}\sum_{j=1}^k \frac{min(u_i, u_j)}{max(u_i, u_j)}$
+For each tree i, we select the k closest neighboors (by default 4, maximum equals to Nselect) and compute $T_i=\frac{1}{k}\sum_{j=1}^k \frac{min(u_i, u_j)}{max(u_i, u_j)}$
 Here the size u is taken as the DBH.
 
 ```{r, echo = TRUE}
@@ -173,7 +176,7 @@ As in the mingling index, we also compute the expected size differentiation, whi
 ## The Winkelmass index
 
 Also called the Uniform angle index, "The Winkelmass describes the regularity or irregularity of the spatial distribution of the n trees nearest to a reference tree i" (Hui and Gadow, 2002).
-This index is based on the angle between trees and their neighboor and we refer to the paper Hui and Gadow, 2002 to clear explanations.
+This index is based on the angle between trees and their neighboors and we refer to the paper of Hui and Gadow, 2002 for explanations.
 They give an interpretation to the index :
 
 | Winkelmass    | Category      |
@@ -199,10 +202,10 @@ The index ranges from 1 (all trees have the same height) to theoretically infini
 ```{r, echo = TRUE}
 StructuralComplexityIndex(PlotExample, coord=c(0,80,0,80))
 ```
-# Recovery Metrics (Resilience)
+# Recovery metrics (Resilience)
 
-Three resilience metrics can be computed for a selected variable: Time to recover, Degree of recovery after 20 years and the recovery rate.
-Here is an example with a virtual simulations for two sites using Salem model:
+Three resilience metrics can be computed for a selected variable: Time to recover, Degree of recovery after X years (by default X=20 years) and the recovery rate.
+Here is an example with a virtual simulation for two sites using Salem model:
 
 ```{r echo=TRUE}
 print(str(VirtualExperiment))
@@ -216,10 +219,10 @@ The dataset must contain at least these variables:
 4. "postDisturbance"
 
 Variables "site" and "weight" will be filled automatically if they are not in the dataset.
-The dataset can be a distribution ( = each line represent a size and a species) or trees ( = each line is a tree with a species and dbh associated).
-The variable postDisturbance is crucial as it is the only intel we have on when the perturbation is applied.
-The value of postDisturbance (true / false) is specific for each year: each "normal" year, its value is false.
-When there is a disturbance, its values are false (same year but before disturbance) and true (same year but after disturbance).
+The dataset can be a distribution (each line represents a size and a species) or trees (each line is a tree with a species and associated dbh).
+The variable postDisturbance is crucial as it is the only information we have on when the perturbation is applied.
+The value of postDisturbance (true / false) is specific for each year: for each "normal" year, its value is false.
+When there is a disturbance, its value is false for the same year but before disturbance and true for the same year but after disturbance.
 
 We first need to 'format' Salem outputs:
 ```{r, echo = TRUE, fig.width=8, fig.asp=0.7}
@@ -227,7 +230,7 @@ DF <- format_salem(dataRaw=VirtualExperiment, ClassInter=10, ClassIni=7.5, type=
 print(head(DF))
 plot(DF, Nvar='V_m3', RecTime=20, normalize='baseline')
 ```
-This function will mostly compute the heterogeneity index for each year and site.
+This function will mostly compute heterogeneity indices for each year and site.
 It creates a new variable called 'preDisturbance': it equals TRUE for every year before the disturbance.
 One can plot the object build by format_salem using plot and the name of the variable to be plotted and the time at which recovery is computed.
 The argument normalize can take three values:
@@ -236,10 +239,10 @@ The argument normalize can take three values:
 2. 'impact'
 3. any other value will induce no normalization
 
-See Ingrisch and Bahn, 2018 for details.
+(see Ingrisch and Bahn, 2018 for details).
 
 The function EventResilience can then be used to compute the recovery metrics.
-I will compute an initial state which is meant over all the years classified as preDisturbance==TRUE, that is all the years before the Event.
+The state before perturbation is calculated as the mean of variables over the years classified as preDisturbance==TRUE.
 
 ```{r echo=TRUE}
 E <- EventResilience(DF, Nvar='V_m3', RecTime=20, normalize='impact')
@@ -252,13 +255,13 @@ If any value is NA, it means that the metric could not be calculated and data sh
 The function EventResilience also returns the values of the population before disturbance (with the suffix "ini").
 
 
-# Landscape Metrics
+# Landscape heterogeneity metrics
 
-Landscape data are composed of two files, one with the gridded landscape features, one with the trees data with for each grid the trees number by dbh and species.
+Landscape data are composed of two files, one with the gridded landscape features and one with the tree data with for each grid the trees number by dbh and species.
 
-The function LandscapeDBHtoClass take the trees dataset and return a distribution dataset.
+The function LandscapeDBHtoClass take the trees dataset and return a dbh distribution dataset.
 One can choose to build class with species (Arg Nvar='species') or tree DBH (Arg Nvar='D_cm').
-In the latter case the arguments ClassInter and ClassIni will definehow  are DBH classes are built.
+In the latter case the arguments ClassInter and ClassIni will define how  DBH classes are built.
 The example object LandscapeExample has been obtained from landscape data with:
 
 ```{r eval=FALSE}
@@ -275,7 +278,7 @@ From this distribution dataset, it is possible to build a "gridded distribution 
 The main argument is the resolution (or more appropriately the grain) chosen to compute heterogeneity indices.
 This function will build a new grid with a resolution equal to Res and gather data into this new grid points.
 
-As there is a large number of grid configuration possible, the argument N which range from 1 to 9, help produce 9 potential grid configuration to be able to produce variability due to different grid configurations.
+As there is a large number of possible grid configurations, the argument N which range from 1 to 9, helps produce 9 potential grid configuration to be able to produce variability.
 
 ```{r, echo = TRUE, fig.width=8, fig.asp=0.7}
 GridData=GridLandscape(LandscapeExample, Res=.5, N=1)
@@ -285,28 +288,31 @@ plot(GridData)
 The GridLandscape function returns a data.frame at the new resolution, and just gather the data from the distribution dataset.
 It also computes the quadratic mean diameter (Dg), the total basal area (BA), the tree density (NHA), the number of initial cells within each grid point (Ncells) and their area.
 
-The function ComputeHeterogeneity will compute different heterogeneity indices from the distriution dataset (here LandscapeExample).
+The function ComputeHeterogeneity will compute different heterogeneity indices from the distribution dataset (here LandscapeExample).
 The gridding process is performed within the function.
 
 1. alpha/beta/gamma diversity based on Richness (Nb of class)
 2. alpha/beta/gamma diversity based on shannon from proportion based on density
 3. alpha/beta/gamma diversity based on shannon from proportion based on basal area
-4. The variance of the mean basal area in each grid point
+4. The coefficient of variation of the mean basal area in each grid point
+5. The coefficient of variation of tree density in each grid point
 
 For example to compute heterogeneity metrics usind GridData :
 ```{r echo=TRUE}
 ComputeHeterogeneity(GridData)
 ```
 
-The function ComputeBuidiversity will compute, for each diversity variable in the distribution data.frame, the area weighted mean, 10 percentile and 90 percentiles.
-If variables VDW, LSDTN, LLTDN are present, it will add percentage of area above already fixed thresholds.
+# Landscape biodiversity metrics
+
+The function ComputeBuidiversity will compute, for each diversity variable in the distribution data.frame, the area weighted mean, 10 weighted percentile and 90 weighted percentiles.
+If variables VDW (dead wood volume), LSDTN (the density of large standing dead trees), LLTDN (the density of large living trees) are present, it will add percentage of area above already fixed thresholds.
 
 ```{r echo=TRUE}
 ComputeBiodiversity(GridData)
 ```
 
 Both calculation can simply be performed using directly the distribution data.frame and the function ComputeHeterogeneityScale, with the wanted grain (still in km).
-In this case, calculation are made using the 9 grid configurations and the output is the mean of indices overe these configuratios.
+In this case, calculation are made using the 9 grid configurations and the output is the mean of indices over these configurations.
 ```{r echo=TRUE}
 ComputeHeterogeneityScale(LandscapeExample, Res=0.05, Out='Mean')
 ```
