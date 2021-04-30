@@ -110,7 +110,7 @@ GiniPop <- function(Size, BA, weight = 1, PLOT=FALSE){
     if (PLOT==TRUE){
         pl <- ggplot2::ggplot(data.frame(x=x,y=y), ggplot2::aes(x=x,y=y)) +
 	    ggplot2::geom_area() + ggplot2::geom_abline(col='red') +
-	    ggplot2::xlab('Cumulative proportion of Size') +
+	    ggplot2::xlab('Cumulative proportion of size') +
 	    ggplot2::ylab('Cumulative proportion of basal area') +
 	    ggplot2::theme_bw(base_size=20) +
 	    ggplot2::ggtitle(paste0('Gini coefficient : ', round(1-2*A, digits=2)))
