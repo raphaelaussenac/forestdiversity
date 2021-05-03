@@ -4,7 +4,7 @@
 \alias{ComputeHeterogeneityMultiScale}
 \title{Compute Heterogeneity and biodiversitymetrics for a different scales}
 \usage{
-ComputeHeterogeneityMultiScale(DF, Res = c(0.05, 0.1, 1, 2, 5), PLOT = FALSE)
+ComputeHeterogeneityMultiScale(DF, Res = c(0.05, 0.1, 1, 2, 5), Plot = FALSE)
 }
 \arguments{
 \item{DF, }{data.frame of distribution landscape data}
