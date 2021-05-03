@@ -243,7 +243,7 @@ ComputeHeterogeneityScale <- function(DF, Res=1, Out='Mean'){
 #' @param Res, numeric vector, resolution (in km) of the grid
 #' @return Plot
 #' @export
-ComputeHeterogeneityMultiScale <- function(DF, Res=c(0.05, 0.1, 1, 2, 5), PLOT=FALSE){
+ComputeHeterogeneityMultiScale <- function(DF, Res=c(0.05, 0.1, 1, 2, 5), Plot=FALSE){
     HetMultiscale <- do.call(rbind, lapply(Res, ComputeHeterogeneityScale, DF=DF, Out='All'))
     HetMultiscale <- data.table::as.data.table(HetMultiscale)
     HetMultiscaleMean <- HetMultiscale[, lapply(.SD, mean, na.rm=TRUE), by=Res]
@@ -268,7 +268,7 @@ ComputeHeterogeneityMultiScale <- function(DF, Res=c(0.05, 0.1, 1, 2, 5), PLOT=F
         ggplot2::geom_line(ggplot2::aes(y=MeanCoverP90), col='red') + ggplot2::theme(text=ggplot2::element_text(size=24)) +
         ggplot2::xlab('Grain') + ggplot2::ylab('9th Decile of canopy cover')
     pl <- multiplot(p1, p3, p2, p4, cols=2)
-    if (PLOT==TRUE){print(pl)}
+    if (Plot==TRUE){print(pl)}
     return(OUT)
 }
 
