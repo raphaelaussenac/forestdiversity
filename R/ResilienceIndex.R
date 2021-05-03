@@ -197,7 +197,7 @@ plot.VirtualExperiment <- function(dataSet, Nvar='BA', RecTime=20, normalize='ba
 	ggplot2::geom_text(ggplot2::aes(y=0, x=1+Tf, label='Tf'), size=4) +
 	ggplot2::geom_text(ggplot2::aes(y=0, x=1+Tx, label='Tx'), size=4) +
 	ggplot2::geom_text(ggplot2::aes(y=0, x=Td, label='Td'), size=4) +
-	ggplot2::geom_text(ggplot2::aes(y=C0*1.1, x=1+Td, label='Y0=Yd'), size=4) +
+	ggplot2::geom_text(ggplot2::aes(y=C0*1.2, x=1+Td, label='C0=Yd'), size=4) +
 	ggplot2::geom_text(ggplot2::aes(y=Pd*0.9, x=1+Td, label='Pd'), size=4) +
 	ggplot2::geom_text(ggplot2::aes(y=Px*0.9, x=1+Tx, label='Px'), size=4) +
 	ggplot2::geom_point(data=dataSet, ggplot2::aes(x=year, y=Var, col=preDisturbance), size=2) +
