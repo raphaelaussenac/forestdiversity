@@ -4,14 +4,14 @@
 \alias{GiniPop}
 \title{Compute Gini index}
 \usage{
-GiniPop(Size, BA, weight = 1, PLOT = FALSE)
+GiniPop(Size, BA, weight = 1, Plot = FALSE)
 }
 \arguments{
 \item{Size}{numeric vector, size of each treee in the population (in cm)}
 
 \item{BA}{numeric vector, basal area associated with each tree (in m2ha-1)}
 
-\item{PLOT, }{logical, if set to 1 plot the lorenz curve}
+\item{Plot, }{logical, if set to 1 plot the lorenz curve}
 
 \item{Weight, }{numeric vector, weight associated with each tree}
 }
