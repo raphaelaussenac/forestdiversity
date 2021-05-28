@@ -1,7 +1,7 @@
 ---
 title: forestdiversity
-output: rmarkdown::html_vignette
-#output: rmarkdown::word_document
+#output: rmarkdown::html_vignette
+output: rmarkdown::word_document
 fig_width: 2 
 fig_height: 2 
 vignette: >
@@ -108,10 +108,10 @@ CalcDivIndex(PlotExample, Nvar = 'D_cm', ClassInter=10, ClassIni=5, type = 'BA',
 ```
 
 The function GiniPop used in CalcDivIndex can be used independently.
-If the argument PLOT is TRUE, it will return a graph of the Lorenz curve.
+If the argument Plot is TRUE, it will return a graph of the Lorenz curve.
 
 ```{r, echo = TRUE, fig.width=8, fig.asp=1}
-GiniPop(Size=PlotExample$D_cm, BA=PlotExample$D_cm^2, PLOT=TRUE)
+GiniPop(Size=PlotExample$D_cm, BA=PlotExample$D_cm^2, Plot=TRUE)
 ```
 
 ## Spatial metrics
@@ -320,7 +320,7 @@ ComputeHeterogeneityScale(LandscapeExample, Res=0.05, Out='Mean')
 
 The function can be applied on several grains, by using 
 ```{r echo=TRUE}
-DF <- ComputeHeterogeneityMultiScale(LandscapeExample, Res=c(0.05, 0.1, 0.5, 1), PLOT=TRUE)
+DF <- ComputeHeterogeneityMultiScale(LandscapeExample, Res=c(0.05, 0.1, 0.5, 1), Plot=TRUE)
 ```
 
 
