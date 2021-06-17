@@ -1,7 +1,8 @@
 ---
 title: forestdiversity
+output: rmarkdown::pdf_document
 #output: rmarkdown::html_vignette
-output: rmarkdown::word_document
+#output: rmarkdown::word_document
 fig_width: 2 
 fig_height: 2 
 vignette: >
@@ -205,7 +206,12 @@ StructuralComplexityIndex(PlotExample, coord=c(0,80,0,80))
 ```
 # Recovery metrics (Resilience)
 
-Three resilience metrics can be computed for a selected variable: Time to recover, Degree of recovery after X years (by default X=20 years) and the recovery rate.
+## One perturbation event
+Three resilience metrics can be computed for a selected variable:
+
+1. Time to recover
+2. Degree of recovery after X years (by default X=20 years)
+3. The recovery rate.
 Here is an example with a virtual simulation for two sites using Salem model:
 
 ```{r echo=TRUE}
@@ -233,6 +239,8 @@ plot(DF, Nvar='V_m3', RecTime=20, normalize='baseline')
 ```
 This function will mostly compute heterogeneity indices for each year and site.
 It creates a new variable called 'preDisturbance': it equals TRUE for every year before the disturbance.
+For outputs from Samsara2, one must use function format_samsara.
+
 One can plot the object build by format_salem using plot and the name of the variable to be plotted and the time at which recovery is computed.
 The argument normalize can take three values:
 
@@ -255,6 +263,12 @@ If TimeToRecovery is -99, it means the system did not reach recovery.
 If any value is NA, it means that the metric could not be calculated and data should be inspected.
 The function EventResilience also returns the values of the population before disturbance (with the suffix "ini").
 
+## Regime of disturbances
+For simulations with a regime of disturbations, metrics computed are:
+
+1. Temporal instability : $CV=\frac{sd(Var)}{mean(Var)}$
+2. Non Permanent Time: NPT
+3. Non Permanent Intensity
 
 # Landscape heterogeneity metrics
 
