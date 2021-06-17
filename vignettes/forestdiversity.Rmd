@@ -241,7 +241,7 @@ This function will mostly compute heterogeneity indices for each year and site.
 It creates a new variable called 'preDisturbance': it equals TRUE for every year before the disturbance.
 For outputs from Samsara2, one must use function format_samsara.
 
-One can plot the object build by format_salem using plot and the name of the variable to be plotted and the time at which recovery is computed.
+One can plot the object build by format_salem/format_samsara using plot and the name of the variable to be plotted and the time at which recovery is computed.
 The argument normalize can take three values:
 
 1. 'baseline'
