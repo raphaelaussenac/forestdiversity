@@ -155,7 +155,7 @@ EntropyPop <- function(Class, weight, OutFormat='list'){
     P <- dplyr::summarise(P, p = sum(weight))
     P <- dplyr::ungroup(P)
     P <- dplyr::mutate(P, p=p/sum(p))
-    Out <- data.frame(Shannon=-sum(P$p*log(P$p)), Simpson=sum(P$p^2), Nclass=dim(P)[1])
+    Out <- data.frame(Shannon=-sum(P$p*log(P$p), na.rm=TRUE), Simpson=sum(P$p^2), Nclass=dim(P)[1])
     if (OutFormat=='list'){
         return(Out)
     }else if (OutFormat=='str'){
