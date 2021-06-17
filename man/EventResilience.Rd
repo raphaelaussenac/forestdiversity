@@ -2,7 +2,7 @@
 % Please edit documentation in R/ResilienceIndex.R
 \name{EventResilience}
 \alias{EventResilience}
-\title{Compute resilience metrics for a dataSet}
+\title{Compute resilience metrics for a dataSet of disturbance event}
 \usage{
 EventResilience(dataSet, Nvar = "V_m3", RecTime = 20, normalize = "baseline")
 }
@@ -10,6 +10,8 @@ EventResilience(dataSet, Nvar = "V_m3", RecTime = 20, normalize = "baseline")
 \item{dataSet, }{data.frame formatted using format_Salem or format_Samsara with multiple simulation conditions}
 
 \item{Nvar}{string, name of the variable studied}
+
+\item{RecTime}{integer, time to compute recovery}
 }
 \value{
 A data.frame containing resilience metrics for each simulation. A NA value is returned if there is an error
