@@ -1,7 +1,7 @@
 ---
 title: forestdiversity
-output: rmarkdown::pdf_document
-#output: rmarkdown::html_vignette
+#output: rmarkdown::pdf_document
+output: rmarkdown::html_vignette
 #output: rmarkdown::word_document
 fig_width: 2 
 fig_height: 2 
@@ -217,31 +217,23 @@ Here is an example with a virtual simulation for two sites using Salem model:
 ```{r echo=TRUE}
 print(str(VirtualExperiment))
 ```
-The dataset must contain at least these variables: 
-
-
-1. "year"
-2. "D_cm"
-3. "species"
-4. "postDisturbance"
-
-Variables "site" and "weight" will be filled automatically if they are not in the dataset.
-The dataset can be a distribution (each line represents a size and a species) or trees (each line is a tree with a species and associated dbh).
-The variable postDisturbance is crucial as it is the only information we have on when the perturbation is applied.
-The value of postDisturbance (true / false) is specific for each year: for each "normal" year, its value is false.
-When there is a disturbance, its value is false for the same year but before disturbance and true for the same year but after disturbance.
+The dataset must contain informations on the perturbation, with at least the years with perturbations, and the initial state.
 
 We first need to 'format' Salem outputs:
 ```{r, echo = TRUE, fig.width=8, fig.asp=0.7}
 DF <- format_salem(dataRaw=VirtualExperiment, ClassInter=10, ClassIni=7.5, type='BA')
 print(head(DF))
-plot(DF, Nvar='V_m3', RecTime=20, normalize='baseline')
 ```
 This function will mostly compute heterogeneity indices for each year and site.
 It creates a new variable called 'preDisturbance': it equals TRUE for every year before the disturbance.
 For outputs from Samsara2, one must use function format_samsara.
+The different format functions will produce similar data.frames that can be used in metrics calculations.
 
 One can plot the object build by format_salem/format_samsara using plot and the name of the variable to be plotted and the time at which recovery is computed.
+```{r, echo = TRUE, fig.width=8, fig.asp=0.7}
+plot(DF, Nvar='V_m3', RecTime=20, normalize='baseline')
+```
+
 The argument normalize can take three values:
 
 1. 'baseline'
@@ -269,6 +261,9 @@ For simulations with a regime of disturbations, metrics computed are:
 1. Temporal instability : $CV=\frac{sd(Var)}{mean(Var)}$
 2. Non Permanent Time: NPT
 3. Non Permanent Intensity
+4. Net change
+
+After being formatted, the function RegimeResilience will compute the metrics.
 
 # Landscape heterogeneity metrics
 
