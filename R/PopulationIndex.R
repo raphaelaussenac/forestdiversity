@@ -29,6 +29,7 @@ CalcDivIndex <- function(dataSet, Nvar = 'D_cm', ClassInter = 10, ClassIni=7.5, 
     listNameGrouping <- 'site'
     if (('year' %in% names(dataSet))){listNameGrouping <- c(listNameGrouping, 'year')}
     if (('src' %in% names(dataSet))){listNameGrouping <- c(listNameGrouping, 'src')}
+    if (('simulationId' %in% names(dataSet))){listNameGrouping <- c(listNameGrouping, 'simulationId')}
     if (('postThinning' %in% names(dataSet))){listNameGrouping <- c(listNameGrouping, 'postThinning')}
     if (('postDisturbance' %in% names(dataSet))){listNameGrouping <- c(listNameGrouping, 'postDisturbance')}
     if (!('src' %in% names(dataSet))){dataSet <- dplyr::mutate(dataSet, src='NA')}
