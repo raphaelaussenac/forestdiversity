@@ -212,6 +212,8 @@ Three resilience metrics can be computed for a selected variable:
 1. Time to recover
 2. Degree of recovery after X years (by default X=20 years)
 3. The recovery rate.
+4. The efficienct at time X
+
 Here is an example with a virtual simulation for two sites using Salem model:
 
 ```{r echo=TRUE}
@@ -234,13 +236,13 @@ One can plot the object build by format_salem/format_samsara using plot and the 
 plot(DF, Nvar='V_m3', RecTime=20, normalize='baseline')
 ```
 
+All the metrics can be computed with normalization (see Ingrisch and Bahn, 2018 for details).
 The argument normalize can take three values:
 
 1. 'baseline'
 2. 'impact'
 3. any other value will induce no normalization
 
-(see Ingrisch and Bahn, 2018 for details).
 
 The function EventResilience can then be used to compute the recovery metrics.
 The state before perturbation is calculated as the mean of variables over the years classified as preDisturbance==TRUE.
@@ -250,7 +252,8 @@ E <- EventResilience(DF, Nvar='V_m3', RecTime=20, normalize='impact')
 print(head(E))
 ```
 
-Some notation explanation: TimeToRecover is the time to recovery (i.e. Tf-T0), ThetaRecovery is the recovery rate (i.e. $\frac{C0-Pd}{Tf-T0}$ and DegreeRecovery is the degree of recovery after X years (the argument RecTime, here 20, i.e. $\frac{Px}{C0}$).
+Some notation explanation: TimeToRecover is the time to recovery (i.e. Tf-T0), ThetaRecovery is the recovery rate (i.e. $\frac{C0-Pd}{Tf-T0}$, DegreeRecovery is the degree of recovery after X years (the argument RecTime, here 20, i.e. $\frac{Px}{C0}$) and Phi1 the the efficiency at time X.
+Phi1 is computed $1 - \frac{Ax}{NCIx}$, $Ax$ being the area between the reference dynamics and 0 and $NCIx$ the net area difference between reference system (here the initial value) and perturbed system.
 If TimeToRecovery is -99, it means the system did not reach recovery.
 If any value is NA, it means that the metric could not be calculated and data should be inspected.
 The function EventResilience also returns the values of the population before disturbance (with the suffix "ini").
