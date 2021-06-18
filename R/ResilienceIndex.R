@@ -13,15 +13,15 @@ RegimeResilience <- function(dataSet, Nvar='V_m3', minVar=0, maxVar=Inf){
     if (!('VirtualExperimentRegime' %in% class(dataSet))){stop('Need format first')}
     dataSetini <- dataSet[preDisturbance==TRUE, ]
     dataSetini <- dplyr::select(dataSetini, -postDisturbance, -preDisturbance, -YearDisturbance, -DisturbanceType)
-    dataSetini <- dataSetini[, lapply(.SD, mean), by=c('site','src')]
-    names(dataSetini)[!(names(dataSetini) %in% c('year','site','src'))] <-
-        paste0(names(dataSetini)[!(names(dataSetini) %in% c('year','site','src'))], 'ini')
+    dataSetini <- dataSetini[, lapply(.SD, mean), by=c('simulationId','src')]
+    names(dataSetini)[!(names(dataSetini) %in% c('year','simulationId','src'))] <-
+        paste0(names(dataSetini)[!(names(dataSetini) %in% c('year','simulationId','src'))], 'ini')
     dataSet <- dplyr::mutate(dataSet, Var=dataSet[, ..Nvar][[1]])
     dataSet <- dataSet[preDisturbance==FALSE, ]
     Metrics <- dataSet[,.(CV=sd(Var)/mean(Var), NPT=sum((Var>=minVar & Var<=maxVar))/length(Var),
         NPI=(abs(sum(dataSet$Var[dataSet$Var<minVar]-minVar))+abs(sum(maxVar-dataSet$Var[dataSet$Var>maxVar])))/
-	(length(dataSet$Var)*(maxVar-minVar)), NetChange=Var[length(Var)] - Var[1]), by=c('site', 'src')]
-    Metrics <- merge(Metrics, dataSetini, by=c('site', 'src'))
+	(length(dataSet$Var)*(maxVar-minVar)), NetChange=Var[length(Var)] - Var[1]), by=c('simulationId', 'src')]
+    Metrics <- merge(Metrics, dataSetini, by=c('simulationId', 'src'))
     return(Metrics)
 }
 
@@ -40,13 +40,13 @@ EventResilience <- function(dataSet, Nvar='V_m3', RecTime=20, normalize='baselin
     if (!('VirtualExperimentEvent' %in% class(dataSet))){stop('Need format first')}
     dataSetini <- dataSet[preDisturbance==TRUE, ]
     dataSetini <- dplyr::select(dataSetini, -postDisturbance, -preDisturbance, -YearDisturbance, -DisturbanceType)
-    dataSetini <- dataSetini[, lapply(.SD, mean), by=c('site','src')]
-    names(dataSetini)[!(names(dataSetini) %in% c('year','site','src'))] <-
-        paste0(names(dataSetini)[!(names(dataSetini) %in% c('year','site','src'))], 'ini')
+    dataSetini <- dataSetini[, lapply(.SD, mean), by=c('simulationId','src')]
+    names(dataSetini)[!(names(dataSetini) %in% c('year','simulationId','src'))] <-
+        paste0(names(dataSetini)[!(names(dataSetini) %in% c('year','simulationId','src'))], 'ini')
     dataSet <- dplyr::mutate(dataSet, Var=dataSet[, ..Nvar][[1]])
     TT <- dataSet[,.(RecMet=tryCatch(RecoveryMetrics(Var, year, preDisturbance,
         YearDisturbance, RecTime=RecTime, normalize=normalize, FormatOut='str'),
-       error=function(e){return('-1/-1/-1/-1')})), by=c('site', 'src')]
+       error=function(e){return('-1/-1/-1/-1')})), by=c('simulationId', 'src')]
     TT <- dplyr::mutate(TT, TimeToRecover=as.numeric(do.call(rbind, strsplit(RecMet, '/'))[, 1]),
 	DegreeRecovery=as.numeric(do.call(rbind, strsplit(RecMet, '/'))[, 2]),
 	ThetaRecovery=as.numeric(do.call(rbind, strsplit(RecMet, '/'))[, 3]),
@@ -56,7 +56,7 @@ EventResilience <- function(dataSet, Nvar='V_m3', RecTime=20, normalize='baselin
     TT <- dplyr::select(TT, -RecMet)
     TT[TT==-1] <- NA
     TT <- dplyr::mutate(TT, Nvar=Nvar)
-    TT <- merge(TT, dataSetini, by=c("site", "src"))
+    TT <- merge(TT, dataSetini, by=c("simulationId", "src"))
     return(TT)
 }
 
@@ -123,14 +123,19 @@ RecoveryMetrics <- function(Var,
 #' @param dataRaw, data.frame, dataSet containing the simulation output of Samsara
 #' @return dataSet, data.table, formatted outuput
 format_samsara <- function(dataRaw, ClassInter=10, ClassIni=7.5, Out='HillNb', type='BA'){
-    listNameGrouping <- c('site', 'src')
+    if (!('src' %in% names(dataRaw))){dataRaw <- dplyr::mutate(dataRaw, src='samsara')}
+    listNameGrouping <- c('simulationId', 'src')
     dataRaw <- data.table::as.data.table(dataRaw)
     dataRaw <- dataRaw[dataRaw$speciesName!='AllSpecies', ]
-    dataRaw <- dplyr::mutate(dataRaw, postDisturbance=0, preDisturbance=0, site=simulationId, species=speciesName)
+    dataRaw <- dplyr::mutate(dataRaw, postDisturbance=0, preDisturbance=0, simulationId=simulationId, species=speciesName)
 #################### Cut informations
     dataCut <- dataRaw[, .(deadCut_N_ha=sum(deadCut_N_ha), deadCut_G=sum(deadCut_G_ha), deadCut_V_m3=sum(deadCut_V_ha),
         HarvestedVol_FreshWood_ha=sum(HarvestedVol_FreshWood_ha), HarvestedVol_DeadWood_ha=sum(HarvestedVol_DeadWood_ha)),
-        by=c('simulationId', 'year')]
+        by=c('simulationId', 'src', 'year')]
+    iHarv <- which(substr(names(a), 1, 9)=='harvested')
+    dataHarv <- cbind(dplyr::select(dataRaw, simulationId, src, year), apply(dataRaw[, ..iHarv], 1, sum))
+    names(dataHarv) <- c('simulationId', 'src', 'year', 'Harvested')
+    dataHarv <- dataHarv[, .(Harvested=sum(Harvested)), by=c('simulationId','src', 'year')]
 ####################################
     DisturbanceType <- "Regime"
     if (!"eventType" %in% names(dataRaw)){
@@ -147,7 +152,6 @@ format_samsara <- function(dataRaw, ClassInter=10, ClassIni=7.5, Out='HillNb', t
     dataRaw$postDisturbance[(dataRaw$eventType=='Evolution' & dataRaw$year==min(dataRaw$year))] <- 1
     if (('year' %in% names(dataRaw))){listNameGrouping <- c(listNameGrouping, 'year')}
     if (('postDisturbance' %in% names(dataRaw))){listNameGrouping <- c(listNameGrouping, 'postDisturbance')}
-    if (!('src' %in% names(dataRaw))){dataRaw <- dplyr::mutate(dataRaw, src='samsara')}
 
     dataSet <- dataRaw[, .(V_m3=sum(V_ha), N_ha=sum(N_ha), BA=sum(G_ha),
         Dg=sqrt(sum(N_ha * Dg^2)/sum(N_ha)), Carbon_AG=sum(Carbon_AG_ha),
@@ -155,7 +159,7 @@ format_samsara <- function(dataRaw, ClassInter=10, ClassIni=7.5, Out='HillNb', t
 	deadCut_G=sum(deadCut_G_ha), deadCut_V_m3=sum(deadCut_V_ha)), by=c(listNameGrouping, "preDisturbance")]
 
     iN <- which(substr(names(dataRaw),1, 3)=='N_D')
-    dataTreeNha <- cbind(dplyr::select(dataRaw, site, src, year, postDisturbance, species), dataRaw[, ..iN])
+    dataTreeNha <- cbind(dplyr::select(dataRaw, simulationId, src, year, postDisturbance, species), dataRaw[, ..iN])
     dataTreeNha <- tidyr::pivot_longer(dataTreeNha, 6:(ncol(dataTreeNha)))
     dataTreeNha <- dplyr::mutate(dataTreeNha, D_cm=as.numeric(gsub('_ha', '', gsub('N_D', '', name))), 
         weight=value)
@@ -165,13 +169,17 @@ format_samsara <- function(dataRaw, ClassInter=10, ClassIni=7.5, Out='HillNb', t
     HetIndexSp <- CalcDivIndex(dataTreeNha, 'species', ClassInter=10, ClassIni=ClassIni, type=type)
     names(HetIndexSp)[!(names(HetIndexSp) %in% listNameGrouping)] <-
          paste0(names(HetIndexSp)[!(names(HetIndexSp) %in% listNameGrouping)], 'Sp')
+ print(str(dataSet))
+ print(str(HetIndexSize))
     dataSet <- merge(dataSet, HetIndexSize, by=listNameGrouping, all.x=TRUE)
     dataSet <- merge(dataSet, HetIndexSp, by=listNameGrouping, all.x=TRUE)
+    dataSet <- merge(dataSet, dataCut, by=c('simulationId', 'src', 'year'), all.x=TRUE)
+    dataSet <- merge(dataSet, dataHarv, by=c('simulationId', 'src', 'year'), all.x=TRUE)
     if (DisturbanceType!='Event'){
         dataSet <- dplyr::mutate(dataSet, YearDisturbance=NA, DisturbanceType='Regime')
         class(dataSet) <- append('VirtualExperimentRegime', class(dataSet))
     }else{
-        dataSet <- dataSet[, YearDisturbance:=min(year[postDisturbance==TRUE]), by=list(site, src)]
+        dataSet <- dataSet[, YearDisturbance:=min(year[postDisturbance==TRUE]), by=list(simulationId, src)]
         dataSet <- dplyr::mutate(dataSet, DisturbanceType='Event')
         class(dataSet) <- append('VirtualExperimentEvent', class(dataSet))
     }
@@ -189,7 +197,8 @@ format_samsara <- function(dataRaw, ClassInter=10, ClassIni=7.5, Out='HillNb', t
 #' @return dataSet, data.table, formatted outuput
 #' @export
 format_salem <- function(dataRaw, ClassInter=10, ClassIni=7.5, Out='HillNb', type='BA'){
-    listNameGrouping <- c('site', 'src')
+    dataRaw <- dplyr::mutate(dataRaw, simulationId=site)
+    listNameGrouping <- c('simulationId', 'src')
     if ('postThinning' %in% names(dataRaw)){dataRaw <- dplyr::select(dataRaw, -postThinning)}
     if (('year' %in% names(dataRaw))){listNameGrouping <- c(listNameGrouping, 'year')}
     if (('postThinning' %in% names(dataRaw))){listNameGrouping <- c(listNameGrouping, 'postThinning')}
@@ -209,13 +218,13 @@ format_salem <- function(dataRaw, ClassInter=10, ClassIni=7.5, Out='HillNb', typ
     dataSet <- merge(dataSet, HetIndexSize, by=listNameGrouping, all.x=TRUE)
     dataSet <- merge(dataSet, HetIndexSp, by=listNameGrouping, all.x=TRUE)
     dataSet <- dataSet[, BAinc:=c(diff(BA), NA), by=listNameGrouping]
-    Nevent <- dataSet[, .(Ne=sum(postDisturbance==TRUE)), by=c('site', 'src')]
+    Nevent <- dataSet[, .(Ne=sum(postDisturbance==TRUE)), by=c('simulationId', 'src')]
     print(Nevent)
     if (max(Nevent$Ne)>1){
         dataSet <- dplyr::mutate(dataSet, YearDisturbance=NA, preDisturbance=FALSE, DisturbanceType='Regime')
     class(dataSet) <- append('VirtualExperimentRegime', class(dataSet))
     }else{
-        dataSet <- dataSet[, YearDisturbance:=min(year[postDisturbance==TRUE]), by=list(site, src)]
+        dataSet <- dataSet[, YearDisturbance:=min(year[postDisturbance==TRUE]), by=list(simulationId, src)]
         dataSet <- dplyr::mutate(dataSet, preDisturbance=(year<=YearDisturbance & postDisturbance==FALSE),
 	    DisturbanceType='Event')
     class(dataSet) <- append('VirtualExperimentEvent', class(dataSet))
@@ -235,8 +244,8 @@ plot.VirtualExperimentEvent <- function(dataSet, Nvar='BA', RecTime=20, normaliz
     if (!('VirtualExperimentEvent' %in% class(dataSet))){stop('Need format first')}
     dataSet <- dplyr::mutate(dataSet, Var=dataSet[, ..Nvar][[1]])
     dataSet <- data.table::setDT(dataSet)
-        dataSet <- dataSet[, C0:=mean(Var[preDisturbance==TRUE]), by=list(site, src)]
-        dataSet <- dataSet[, Pd:=min(Var[preDisturbance==FALSE]), by=list(site, src)]
+        dataSet <- dataSet[, C0:=mean(Var[preDisturbance==TRUE]), by=list(simulationId, src)]
+        dataSet <- dataSet[, Pd:=min(Var[preDisturbance==FALSE]), by=list(simulationId, src)]
         if (normalize=='baseline'){
 	    dataSet <- dplyr::mutate(dataSet, Var=Var/C0)
 	}else if (normalize=='impact'){
@@ -249,8 +258,8 @@ plot.VirtualExperimentEvent <- function(dataSet, Nvar='BA', RecTime=20, normaliz
 	    T0=YearDisturbance[1],
        	    P0=Var[preDisturbance==FALSE & year==min(year[preDisturbance==FALSE])],
 	    Tx=YearDisturbance[1]+RecTime,
-            Px=Var[which(year>=YearDisturbance[1]+RecTime)[1]]), by=list(site, src)]
-        Area <- merge(dplyr::select(dataSet, -C0), Points, by=c("site", "src"), all.x=TRUE)
+            Px=Var[which(year>=YearDisturbance[1]+RecTime)[1]]), by=list(simulationId, src)]
+        Area <- merge(dplyr::select(dataSet, -C0), Points, by=c("simulationId", "src"), all.x=TRUE)
         pl <- ggplot2::ggplot(data=Points) + ggplot2::geom_hline(ggplot2::aes(yintercept=C0), linetype=2, col='blue') +
 	ggplot2::geom_vline(ggplot2::aes(xintercept=Tf), linetype=2) +
 	ggplot2::geom_vline(ggplot2::aes(xintercept=Tx), linetype=2) + 
@@ -267,7 +276,7 @@ plot.VirtualExperimentEvent <- function(dataSet, Nvar='BA', RecTime=20, normaliz
 	ggplot2::geom_ribbon(data=dplyr::filter(Area, year>=Tf,year<=Tx), ggplot2::aes(x=year, ymin=C0, ymax=Var), alpha=0.4, fill='yellow') +
 	ggplot2::geom_ribbon(data=dplyr::filter(Area, year<=Tf, year>=T0), ggplot2::aes(x=year, ymin=0*C0, ymax=C0), alpha=0.2, fill='red') +
 	ggplot2::scale_color_manual(values=c('red', 'blue')) +
-	ggplot2::facet_wrap(~site, scales='free', ncol=1) + ggplot2::theme_bw(base_size=24) +
+	ggplot2::facet_wrap(~simulationId, scales='free', ncol=1) + ggplot2::theme_bw(base_size=24) +
 	ggplot2::xlab('Years') +
 	ggplot2::ylab(Nvar)
     print(pl)
@@ -296,7 +305,7 @@ plot.VirtualExperimentRegime <- function(dataSet, Nvar='V_m3', minVar=0, maxVar=
         ggplot2::geom_point(ggplot2::aes(col=FavorableSpace)) + ggplot2::geom_hline(ggplot2::aes(yintercept=minVar), linetype=2) +
         ggplot2::geom_hline(ggplot2::aes(yintercept=maxVar), linetype=2) +
         ggplot2::scale_color_manual(values=c('red', 'blue')) +
- 	ggplot2::xlab('Years') + ggplot2::facet_wrap(~site, scales='free') +
+ 	ggplot2::xlab('Years') + ggplot2::facet_wrap(~simulationId, scales='free') +
 	ggplot2::ylab(Nvar) + ggplot2::theme_bw(base_size=24)
 
  print(pl)
