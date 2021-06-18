@@ -1,8 +1,8 @@
 ---
 title: forestdiversity
 #output: rmarkdown::pdf_document
-#output: rmarkdown::html_vignette
-output: rmarkdown::word_document
+output: rmarkdown::html_vignette
+#output: rmarkdown::word_document
 fig_width: 2 
 fig_height: 2 
 vignette: >
