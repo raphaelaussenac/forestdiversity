@@ -46,12 +46,12 @@ EventResilience <- function(dataSet, Nvar='V_m3', RecTime=20, normalize='baselin
     dataSet <- dplyr::mutate(dataSet, Var=dataSet[, ..Nvar][[1]])
     TT <- dataSet[,.(RecMet=tryCatch(RecoveryMetrics(Var, year, preDisturbance,
         YearDisturbance, RecTime=RecTime, normalize=normalize, FormatOut='str'),
-       error=function(e){return('-1/-1/-1/-1')})), by=c('simulationId', 'src')]
+       error=function(e){return('-1/-1/-1/-1/-1')})), by=c('simulationId', 'src')]
     TT <- dplyr::mutate(TT, TimeToRecover=as.numeric(do.call(rbind, strsplit(RecMet, '/'))[, 1]),
 	DegreeRecovery=as.numeric(do.call(rbind, strsplit(RecMet, '/'))[, 2]),
 	ThetaRecovery=as.numeric(do.call(rbind, strsplit(RecMet, '/'))[, 3]),
-	Impact=as.numeric(do.call(rbind, strsplit(RecMet, '/'))[, 4]))
-#	Phi1=as.numeric(do.call(rbind, strsplit(RecMet, '/'))[,4]),
+	Impact=as.numeric(do.call(rbind, strsplit(RecMet, '/'))[, 4]),
+	Phi1=as.numeric(do.call(rbind, strsplit(RecMet, '/'))[,5]))
 #	Phi2=as.numeric(do.call(rbind, strsplit(RecMet, '/'))[,5]))
     TT <- dplyr::select(TT, -RecMet)
     TT[TT==-1] <- NA
@@ -99,19 +99,20 @@ RecoveryMetrics <- function(Var,
     TimeToRecover <- Tf - T0
     DegreeRecovery <- Px / C0
     ThetaRecovery <- (C0 - Pd) / (Tf - T0)
-    AdT <- TimeToRecover * C0
-    if (max(Year) < (T0 + RecTime)){com <- 'RecTime is after the maximum year'; DegreeRecovery <- -99}
+    ATf <- TimeToRecover * C0
+    ATx <- RecTime * C0
+    NCITx <- sum(abs(Var[preDisturb==FALSE & Year<Tf]-C0))
+    if (max(Year) < (T0 + RecTime)){com <- 'RecTime is after the maximum year'; DegreeRecovery <- -99; ATx <- -99;NCITx <- 99}
     if (is.na(Tf)){com <- paste0(com, '/ No recovery'); TimeToRecover <- -99; ThetaRecovery <- -99}
-    if (sum(preDisturb==FALSE)<1){com <- paste0(com, '/ No data after disturbance'); DegreeRecovery <- -99; ThetaRecovery <- -99; TimeToRecover <- -99}
+    if (sum(preDisturb==FALSE)<1){com <- paste0(com, '/ No data after disturbance'); DegreeRecovery <- -99; ThetaRecovery <- -99; TimeToRecover <- -99; ATx <- -99;NCITx <- 99}
     if (C0 < Pd){com <- paste0(com, '/ Perturbation did not reduce the variable')}
-    if (is.na(C0)){com <- paste0(com, '/ No data before perturbation'); DegreeRecovery <- -99; ThetaRecovery <- -99; TimeToRecover <- -99}
-    if (max(Year) < (T0 + RecTime)){com <- 'RecTime is after the maximum year'; DegreeRecovery <- -99}
+    if (is.na(C0)){com <- paste0(com, '/ No data before perturbation'); DegreeRecovery <- -99; ThetaRecovery <- -99; TimeToRecover <- -99; ATx <- -99;NCITx <- 99}
     Out <- data.frame(TimeToRecover=TimeToRecover, DegreeRecovery=DegreeRecovery,
-        ThetaRecovery=ThetaRecovery, RecTime=RecTime, Impact=C0-Pd, com=com)
+        ThetaRecovery=ThetaRecovery, RecTime=RecTime, Impact=C0-Pd, Phi1=1-NCITx/ATx, com=com)
     if (FormatOut=='list'){
 	return(Out)
     }else if (FormatOut=='str'){
-	return(paste(Out$TimeToRecover, Out$DegreeRecovery, Out$ThetaRecovery, Out$Impact, sep='/'))
+	return(paste(Out$TimeToRecover, Out$DegreeRecovery, Out$ThetaRecovery, Out$Impact, Out$Phi1, sep='/'))
     }else{
         stop('FormatOut should be list or str')
     }
