@@ -32,6 +32,7 @@ CalcDivIndex <- function(dataSet, Nvar = 'D_cm', ClassInter = 10, ClassIni=7.5, 
     if (('simulationId' %in% names(dataSet))){listNameGrouping <- c(listNameGrouping, 'simulationId')}
     if (('postThinning' %in% names(dataSet))){listNameGrouping <- c(listNameGrouping, 'postThinning')}
     if (('postDisturbance' %in% names(dataSet))){listNameGrouping <- c(listNameGrouping, 'postDisturbance')}
+    if (('preDisturbance' %in% names(dataSet))){listNameGrouping <- c(listNameGrouping, 'preDisturbance')}
     if (!('src' %in% names(dataSet))){dataSet <- dplyr::mutate(dataSet, src='NA')}
     dataSet <- dplyr::mutate(dataSet, BA=pi*(D_cm/200)^2*weight)
     dataSet <- data.table::as.data.table(dataSet)
