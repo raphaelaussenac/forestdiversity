@@ -178,7 +178,6 @@ format_samsara <- function(dataRaw, ClassInter=10, ClassIni=7.5, Out='HillNb', t
          paste0(names(HetIndexSp)[!(names(HetIndexSp) %in% listNameGrouping)], 'Sp')
     dataSet <- merge(dataSet, HetIndexSize, by=listNameGrouping, all.x=TRUE)
     dataSet <- merge(dataSet, HetIndexSp, by=listNameGrouping, all.x=TRUE)
-    dataSet <- merge(dataSet, dataHarv, by=c('simulationId', 'src', 'year'), all.x=TRUE)
     if (DisturbanceType!='Event'){
         dataSet <- dplyr::mutate(dataSet, DisturbanceType='Regime')
         class(dataSet) <- append('VirtualExperimentRegime', class(dataSet))
