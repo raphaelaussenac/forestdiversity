@@ -123,64 +123,66 @@ RecoveryMetrics <- function(Var,
 #' This function format the data for further analysis
 #' @param dataRaw, data.frame, dataSet containing the simulation output of Samsara
 #' @return dataSet, data.table, formatted outuput
+#' @export
 format_samsara <- function(dataRaw, ClassInter=10, ClassIni=7.5, Out='HillNb', type='BA'){
     if (!('src' %in% names(dataRaw))){dataRaw <- dplyr::mutate(dataRaw, src='samsara')}
-    listNameGrouping <- c('simulationId', 'src')
     dataRaw <- data.table::as.data.table(dataRaw)
     dataRaw <- dataRaw[dataRaw$speciesName!='AllSpecies', ]
-    dataRaw <- dplyr::mutate(dataRaw, postDisturbance=0, preDisturbance=0, simulationId=simulationId, species=speciesName)
-#################### Cut informations
-    dataCut <- dataRaw[, .(deadCut_N_ha=sum(deadCut_N_ha), deadCut_G=sum(deadCut_G_ha), deadCut_V_m3=sum(deadCut_V_ha),
-        HarvestedVol_FreshWood_ha=sum(HarvestedVol_FreshWood_ha), HarvestedVol_DeadWood_ha=sum(HarvestedVol_DeadWood_ha)),
-        by=c('simulationId', 'src', 'year')]
-    iHarv <- which(substr(names(a), 1, 9)=='harvested')
-    dataHarv <- cbind(dplyr::select(dataRaw, simulationId, src, year), apply(dataRaw[, ..iHarv], 1, sum))
-    names(dataHarv) <- c('simulationId', 'src', 'year', 'Harvested')
-    dataHarv <- dataHarv[, .(Harvested=sum(Harvested)), by=c('simulationId','src', 'year')]
-####################################
-    DisturbanceType <- "Regime"
-    if (!"eventType" %in% names(dataRaw)){
-        dataRaw <- dplyr::mutate(dataRaw, eventType='NA')
+    dataRaw <- dplyr::mutate(dataRaw, postDisturbance=0, preDisturbance=0, postThinning=0, 
+        simulationId=simulationId, species=speciesName)
+    if (!'EventType' %in% names(dataRaw)){
+	dataRaw <- dplyr::mutate(dataRaw, eventType=NA)
         dataRaw$eventType[dataRaw$eventName=='Evolution'] <- 'Evolution'
-        dataRaw$eventType[substr(dataRaw$eventName, 1, 6)=='Create'] <- 'InitialStand'
-	DisturbanceType='Event'
+        dataRaw$eventType[substr(dataRaw$eventName, 1, 7)=='Disturb'] <- 'Disturbance'
+        dataRaw$eventType[dataRaw$eventName=='SaplingCreation'] <- 'InitialStand'
     }
-    dataRaw <- dataRaw[dataRaw$eventType %in% c('InitialStand', 'Evolution'), ]
+    dataRaw <- dataRaw[dataRaw$eventType %in% c('InitialStand', 'Disturbance', 'Evolution', 'AfterCut'), ]
+    dataRaw$postDisturbance[dataRaw$eventType=='Disturbance'] <- 1
+    dataRaw$postThinning[dataRaw$eventType=='AfterCut'] <- 1
+    dataRaw=dataRaw[, Nyear:=.N, by='year']
 
+
+    if (sum(dataRaw$postDisturbance)>1){
+        DisturbanceType <- 'Regime'
+        dataRaw <- dplyr::mutate(dataRaw, YearDisturbance=NA)
+        dataRaw <- dataRaw[!(Nyear>1 & (postThinning + postDisturbance)==1 & eventType!='InitialStand'), ] #Don't keep years just before perturbation or thinning
+    }else if (sum(dataRaw$postDisturbance)==1){
+        DisturbanceType <- 'Event'
+        dataRaw <- dplyr::mutate(dataRaw, YearDisturbance=dataRaw$year[dataRaw$preDisturbance==1])
+    }
     dataRaw$preDisturbance[dataRaw$eventType=='InitialStand'] <- 1
-    dataRaw$preDisturbance <- as.logical(dataRaw$preDisturbance)
-    dataRaw$year[dataRaw$eventType=='InitialStand'] <- min(dataRaw$year[dataRaw$eventType=='Evolution'])
-    dataRaw$postDisturbance[(dataRaw$eventType=='Evolution' & dataRaw$year==min(dataRaw$year))] <- 1
-    if (('year' %in% names(dataRaw))){listNameGrouping <- c(listNameGrouping, 'year')}
-    if (('postDisturbance' %in% names(dataRaw))){listNameGrouping <- c(listNameGrouping, 'postDisturbance')}
 
+    listNameGrouping <- c('simulationId', 'src', 'year', 'postThinning', 'postDisturbance', 'preDisturbance')
+
+#######################################
     dataSet <- dataRaw[, .(V_m3=sum(V_ha), N_ha=sum(N_ha), BA=sum(G_ha),
         Dg=sqrt(sum(N_ha * Dg^2)/sum(N_ha)), Carbon_AG=sum(Carbon_AG_ha),
 	Carbon_BG=sum(Carbon_BG_ha), deadCut_N_ha=sum(deadCut_N_ha),
-	deadCut_G=sum(deadCut_G_ha), deadCut_V_m3=sum(deadCut_V_ha)), by=c(listNameGrouping, "preDisturbance")]
+        HarvestedVol_FreshWood_ha=sum(HarvestedVol_FreshWood_ha), HarvestedVol_DeadWood_ha=sum(HarvestedVol_DeadWood_ha),
+	deadCut_G=sum(deadCut_G_ha), deadCut_V_m3=sum(deadCut_V_ha)), by=listNameGrouping]
 
     iN <- which(substr(names(dataRaw),1, 3)=='N_D')
-    dataTreeNha <- cbind(dplyr::select(dataRaw, simulationId, src, year, postDisturbance, species), dataRaw[, ..iN])
-    dataTreeNha <- tidyr::pivot_longer(dataTreeNha, 6:(ncol(dataTreeNha)))
+    iG <- which(names(dataRaw) %in% c('species', listNameGrouping))
+#    dataTreeNha <- cbind(dplyr::select(dataRaw, simulationId, src, year, postDisturbance, postThinning, species), dataRaw[, ..iN])
+    dataTreeNha <- cbind(dataRaw[,..iG], dataRaw[, ..iN])
+    dataTreeNha <- tidyr::pivot_longer(dataTreeNha, (length(iG) + 1):(ncol(dataTreeNha)))
     dataTreeNha <- dplyr::mutate(dataTreeNha, D_cm=as.numeric(gsub('_ha', '', gsub('N_D', '', name))), 
         weight=value)
     HetIndexSize <- CalcDivIndex(dataTreeNha, 'D_cm', ClassInter=ClassInter, ClassIni=ClassIni, type=type, Out=Out)
+    HetIndexSize <- dplyr::select(HetIndexSize, -site)
     names(HetIndexSize)[!(names(HetIndexSize) %in% listNameGrouping)] <- 
 	   paste0(names(HetIndexSize)[!(names(HetIndexSize) %in% listNameGrouping)], 'Size')
     HetIndexSp <- CalcDivIndex(dataTreeNha, 'species', ClassInter=10, ClassIni=ClassIni, type=type)
-    names(HetIndexSp)[!(names(HetIndexSp) %in% listNameGrouping)] <-
+    HetIndexSp <- dplyr::select(HetIndexSp, -site)
+    names(HetIndexSp)[!(names(HetIndexSp) %in% c('site', listNameGrouping))] <-
          paste0(names(HetIndexSp)[!(names(HetIndexSp) %in% listNameGrouping)], 'Sp')
- print(str(dataSet))
- print(str(HetIndexSize))
     dataSet <- merge(dataSet, HetIndexSize, by=listNameGrouping, all.x=TRUE)
     dataSet <- merge(dataSet, HetIndexSp, by=listNameGrouping, all.x=TRUE)
-    dataSet <- merge(dataSet, dataCut, by=c('simulationId', 'src', 'year'), all.x=TRUE)
     dataSet <- merge(dataSet, dataHarv, by=c('simulationId', 'src', 'year'), all.x=TRUE)
     if (DisturbanceType!='Event'){
-        dataSet <- dplyr::mutate(dataSet, YearDisturbance=NA, DisturbanceType='Regime')
+        dataSet <- dplyr::mutate(dataSet, DisturbanceType='Regime')
         class(dataSet) <- append('VirtualExperimentRegime', class(dataSet))
     }else{
-        dataSet <- dataSet[, YearDisturbance:=min(year[postDisturbance==TRUE]), by=list(simulationId, src)]
         dataSet <- dplyr::mutate(dataSet, DisturbanceType='Event')
         class(dataSet) <- append('VirtualExperimentEvent', class(dataSet))
     }
@@ -200,14 +202,14 @@ format_samsara <- function(dataRaw, ClassInter=10, ClassIni=7.5, Out='HillNb', t
 format_salem <- function(dataRaw, ClassInter=10, ClassIni=7.5, Out='HillNb', type='BA'){
     dataRaw <- dplyr::mutate(dataRaw, simulationId=site)
     listNameGrouping <- c('simulationId', 'src')
-    if ('postThinning' %in% names(dataRaw)){dataRaw <- dplyr::select(dataRaw, -postThinning)}
     if (('year' %in% names(dataRaw))){listNameGrouping <- c(listNameGrouping, 'year')}
     if (('postThinning' %in% names(dataRaw))){listNameGrouping <- c(listNameGrouping, 'postThinning')}
     if (('postDisturbance' %in% names(dataRaw))){listNameGrouping <- c(listNameGrouping, 'postDisturbance')}
     if (!('src' %in% names(dataRaw))){dataRaw <- dplyr::mutate(dataRaw, src='salem')}
     dataRaw <- data.table::as.data.table(dataRaw)
-#    dataRaw$postThinning <- as.logical(dataRaw$postThinning)
+    dataRaw$postThinning <- as.logical(dataRaw$postThinning)
     dataRaw$postDisturbance <- as.logical(dataRaw$postDisturbance)
+    dataRaw <- dataRaw[dataRaw$postThinning==FALSE, ] ## We get rid of cut informations
     HetIndexSize <- CalcDivIndex(dataRaw, 'D_cm', ClassInter=ClassInter, ClassIni=ClassIni, type=type, Out=Out)
     names(HetIndexSize)[!(names(HetIndexSize) %in% listNameGrouping)] <- 
 	   paste0(names(HetIndexSize)[!(names(HetIndexSize) %in% listNameGrouping)], 'Size')
@@ -220,7 +222,6 @@ format_salem <- function(dataRaw, ClassInter=10, ClassIni=7.5, Out='HillNb', typ
     dataSet <- merge(dataSet, HetIndexSp, by=listNameGrouping, all.x=TRUE)
     dataSet <- dataSet[, BAinc:=c(diff(BA), NA), by=listNameGrouping]
     Nevent <- dataSet[, .(Ne=sum(postDisturbance==TRUE)), by=c('simulationId', 'src')]
-    print(Nevent)
     if (max(Nevent$Ne)>1){
         dataSet <- dplyr::mutate(dataSet, YearDisturbance=NA, preDisturbance=FALSE, DisturbanceType='Regime')
     class(dataSet) <- append('VirtualExperimentRegime', class(dataSet))
