@@ -4,7 +4,7 @@ Package to compute forest diversity index in IMaestro project
 
 Need the library devtools in R then in R.
 
-devtools::install_gitlab('arnaud.guyennon/forestdiversity', build_vignettes=TRUE)
+devtools::install_github("raphaelaussenac/forestdiversity", build_vignettes = TRUE)
 
 # Details on the package
 
@@ -18,16 +18,16 @@ vignette('forestdiversity')
 
 Size-Distribution related :
 
-1. Nb of Size class 
+1. Nb of Size class
 2. Hill Numbers (Shannon, Simpson)
-3. Gini index 
+3. Gini index
 
 Species-related
 
 1. Nb of species
 2. Hill Numbers (Shannon, Simpson)
 
-Indices can be computed using whether density or basal as proportion. 
+Indices can be computed using whether density or basal as proportion.
 
 ## Plot (=stand with location) indices
 
@@ -54,5 +54,3 @@ Pommerening and UriaDiez, 2017 : Do large forest trees tend towards high species
 Hui and Gadow, 2002 : Characterizing forest spatial structure and diversity
 Zenner and Hibbs, 2000 : A new method for modeling the heterogeneity of forest structure
 Pommerening and Stoyan, 2006 : Edge-correction needs in estimation indices of spatial forest structure
-
-
